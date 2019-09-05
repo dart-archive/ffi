@@ -11,9 +11,6 @@ import 'dart:typed_data';
 /// [Utf8] implements conversion between Dart strings and null-termianted
 /// Utf8-encoded "char*" strings in C.
 class Utf8 extends Struct<Utf8> {
-  @Uint8()
-  int char;
-
   static String fromUtf8(Pointer<Utf8> str) {
     final Pointer<Uint8> array = str.cast();
     int count = 0x1000;
