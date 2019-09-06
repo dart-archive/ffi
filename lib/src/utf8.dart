@@ -2,37 +2,51 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library utf8;
-
 import 'dart:convert';
 import 'dart:ffi';
 import 'dart:typed_data';
 
 /// [Utf8] implements conversion between Dart strings and null-termianted
 /// Utf8-encoded "char*" strings in C.
+//
+// TODO(https://github.com/dart-lang/sdk/issues/38172): No need to use
+// 'asExternalTypedData' when Pointer operations are performant.
 class Utf8 extends Struct<Utf8> {
-  static String fromUtf8(Pointer<Utf8> str) {
-    final Pointer<Uint8> array = str.cast();
+  /// Creates a [String] containing the characters UTF-8 encoded in [string].
+  ///
+  /// The [string] must be a zero-terminated byte sequence of valid UTF-8
+  /// encodings of Unicode code points. It may also contain UTF-8 encodings of
+  /// unpaired surrogate code points, which is not otherwise valid UTF-8, but
+  /// which may be created when encoding a Dart string containing an unpaired
+  /// surrogate.
+  ///
+  /// Returns a Dart string containing the decoded code points.
+  static String fromUtf8(Pointer<Utf8> string) {
+    final Pointer<Uint8> array = string.cast<Uint8>();
     int count = 0x1000;
-    Uint8List string = array.asExternalTypedData(count: count);
+    Uint8List nativeString = array.asExternalTypedData(count: count);
     int i = 0;
-    for (; string[i] != 0; ++i) {
-      if (i == count) {
+    while (nativeString[i] != 0) {
+      if (++i == count) {
         count *= 2;
-        string = array.asExternalTypedData(count: count);
+        nativeString = array.asExternalTypedData(count: count);
       }
     }
-    return Utf8Decoder().convert(Uint8List.view(string.buffer, 0, i));
+    return utf8.decode(Uint8List.view(nativeString.buffer, 0, i));
   }
 
-  static Pointer<Utf8> toUtf8(String s) {
-    final List<int> units = Utf8Encoder().convert(s);
+  /// Convert a [String] to a Utf8-encoded null-terminated C string.
+  ///
+  /// If 'string' contains NULL bytes, the converted string will be truncated
+  /// prematurely.
+  static Pointer<Utf8> toUtf8(String string) {
+    final units = utf8.encode(string);
     final Pointer<Uint8> result =
         Pointer<Uint8>.allocate(count: units.length + 1);
-    final Uint8List string =
+    final Uint8List nativeString =
         result.asExternalTypedData(count: units.length + 1);
-    string.setAll(0, units);
-    string[units.length] = 0;
+    nativeString.setAll(0, units);
+    nativeString[units.length] = 0;
     return result.cast();
   }
 
