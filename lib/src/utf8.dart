@@ -6,22 +6,15 @@ import 'dart:convert';
 import 'dart:ffi';
 import 'dart:typed_data';
 
-/// [Utf8] implements conversion between Dart strings and null-termianted
+/// [Utf8] implements conversion between Dart strings and null-terminated
 /// Utf8-encoded "char*" strings in C.
 //
-// TODO(https://github.com/dart-lang/sdk/issues/38172): No need to use
+// TODO(https://github.com/dart-lang/ffi/issues/4): No need to use
 // 'asExternalTypedData' when Pointer operations are performant.
 class Utf8 extends Struct<Utf8> {
-  /// Creates a [String] containing the characters UTF-8 encoded in [string].
-  ///
-  /// The [string] must be a zero-terminated byte sequence of valid UTF-8
-  /// encodings of Unicode code points. It may also contain UTF-8 encodings of
-  /// unpaired surrogate code points, which is not otherwise valid UTF-8, but
-  /// which may be created when encoding a Dart string containing an unpaired
-  /// surrogate. See [Utf8Decoder] for details on decoding.
-  ///
-  /// Returns a Dart string containing the decoded code points.
-  static String fromUtf8(Pointer<Utf8> string) {
+  /// Returns the length of a null-terminated string -- the number of (one-byte)
+  /// characters before the first null byte.
+  static int strlen(Pointer<Utf8> string) {
     final Pointer<Uint8> array = string.cast<Uint8>();
     int count = 0x1000;
     Uint8List nativeString = array.asExternalTypedData(count: count);
@@ -32,7 +25,24 @@ class Utf8 extends Struct<Utf8> {
         nativeString = array.asExternalTypedData(count: count);
       }
     }
-    return utf8.decode(Uint8List.view(nativeString.buffer, 0, i));
+    return i;
+  }
+
+  /// Creates a [String] containing the characters UTF-8 encoded in [string].
+  ///
+  /// The [string] must be a zero-terminated byte sequence of valid UTF-8
+  /// encodings of Unicode code points. It may also contain UTF-8 encodings of
+  /// unpaired surrogate code points, which is not otherwise valid UTF-8, but
+  /// which may be created when encoding a Dart string containing an unpaired
+  /// surrogate. See [Utf8Decoder] for details on decoding.
+  ///
+  /// Returns a Dart string containing the decoded code points.
+  static String fromUtf8(Pointer<Utf8> string) {
+    final int length = strlen(string);
+    return utf8.decode(Uint8List.view(
+        string.cast<Uint8>().asExternalTypedData(count: length).buffer,
+        0,
+        length));
   }
 
   /// Convert a [String] to a Utf8-encoded null-terminated C string.
