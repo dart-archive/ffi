@@ -9,8 +9,8 @@ import 'package:test/test.dart';
 import 'package:ffi/ffi.dart';
 
 Pointer<Uint8> _bytesFromList(List<int> ints) {
-  Pointer<Uint8> ptr = Pointer.allocate(count: ints.length);
-  Uint8List list = ptr.asExternalTypedData(count: ints.length);
+  final Pointer<Uint8> ptr = Pointer.allocate(count: ints.length);
+  final Uint8List list = ptr.asExternalTypedData(count: ints.length);
   list.setAll(0, ints);
   return ptr;
 }

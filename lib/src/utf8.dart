@@ -6,8 +6,15 @@ import 'dart:convert';
 import 'dart:ffi';
 import 'dart:typed_data';
 
+const int _kMaxSmi64 = (1 << 62) - 1;
+const int _kMaxSmi32 = (1 << 30) - 1;
+final int _maxSize = sizeOf<IntPtr>() == 8 ? _kMaxSmi64 : _kMaxSmi32;
+
 /// [Utf8] implements conversion between Dart strings and null-terminated
 /// Utf8-encoded "char*" strings in C.
+///
+/// [Utf8] is respresented as a struct so that `Pointer<Utf8>` can be used in
+/// native function signatures.
 //
 // TODO(https://github.com/dart-lang/ffi/issues/4): No need to use
 // 'asExternalTypedData' when Pointer operations are performant.
@@ -16,16 +23,8 @@ class Utf8 extends Struct<Utf8> {
   /// characters before the first null byte.
   static int strlen(Pointer<Utf8> string) {
     final Pointer<Uint8> array = string.cast<Uint8>();
-    int count = 0x1000;
-    Uint8List nativeString = array.asExternalTypedData(count: count);
-    int i = 0;
-    while (nativeString[i] != 0) {
-      if (++i == count) {
-        count *= 2;
-        nativeString = array.asExternalTypedData(count: count);
-      }
-    }
-    return i;
+    final Uint8List nativeString = array.asExternalTypedData(count: _maxSize);
+    return nativeString.indexWhere((char) => char == 0);
   }
 
   /// Creates a [String] containing the characters UTF-8 encoded in [string].
@@ -49,7 +48,7 @@ class Utf8 extends Struct<Utf8> {
   ///
   /// If 'string' contains NULL bytes, the converted string will be truncated
   /// prematurely. Unpaired surrogate code points in [string] will be preserved
-  /// in the UTF-8 encoded result. See [Utf8Encoder] for details on encoding
+  /// in the UTF-8 encoded result. See [Utf8Encoder] for details on encoding.
   ///
   /// Returns a malloc-allocated pointer to the result.
   static Pointer<Utf8> toUtf8(String string) {
