@@ -10,30 +10,31 @@ final DynamicLibrary stdlib = Platform.isWindows
     ? DynamicLibrary.open("kernel32.dll")
     : DynamicLibrary.process();
 
-typedef PosixMallocFn = Pointer Function(IntPtr);
+typedef PosixMallocNative = Pointer Function(IntPtr);
 typedef PosixMalloc = Pointer Function(int);
 final PosixMalloc posixMalloc =
-    stdlib.lookupFunction<PosixMallocFn, PosixMalloc>("malloc");
+    stdlib.lookupFunction<PosixMallocNative, PosixMalloc>("malloc");
 
-typedef PosixFreeFn = Void Function(Pointer);
+typedef PosixFreeNative = Void Function(Pointer);
 typedef PosixFree = void Function(Pointer);
 final PosixFree posixFree =
-    stdlib.lookupFunction<PosixFreeFn, PosixFree>("free");
+    stdlib.lookupFunction<PosixFreeNative, PosixFree>("free");
 
 typedef WinGetProcessHeapFn = Pointer Function();
 final WinGetProcessHeapFn winGetProcessHeap = stdlib
     .lookupFunction<WinGetProcessHeapFn, WinGetProcessHeapFn>("GetProcessHeap");
 final Pointer processHeap = winGetProcessHeap();
 
-typedef WinHeapAllocFn = Pointer Function(Pointer, Uint32, IntPtr);
+typedef WinHeapAllocNative = Pointer Function(Pointer, Uint32, IntPtr);
 typedef WinHeapAlloc = Pointer Function(Pointer, int, int);
 final WinHeapAlloc winHeapAlloc =
-    stdlib.lookupFunction<WinHeapAllocFn, WinHeapAlloc>("HeapAlloc");
+    stdlib.lookupFunction<WinHeapAllocNative, WinHeapAlloc>("HeapAlloc");
 
-typedef WinHeapFreeFn = Int32 Function(Pointer, Uint32, Pointer);
-typedef WinHeapFree = int Function(Pointer, int, Pointer);
+typedef WinHeapFreeNative = Int32 Function(
+    Pointer heap, Uint32 flags, Pointer memory);
+typedef WinHeapFree = int Function(Pointer heap, int flags, Pointer memory);
 final WinHeapFree winHeapFree =
-    stdlib.lookupFunction<WinHeapFreeFn, WinHeapFree>("HeapFree");
+    stdlib.lookupFunction<WinHeapFreeNative, WinHeapFree>("HeapFree");
 
 /// Allocates memory on the native heap.
 ///
@@ -50,7 +51,7 @@ Pointer<T> allocate<T extends NativeType>({int count = 1}) {
   } else {
     result = posixMalloc(totalSize).cast();
   }
-  if (result == null) {
+  if (result.address == 0) {
     throw ArgumentError("Could not allocate $totalSize bytes.");
   }
   return result;
@@ -63,6 +64,9 @@ Pointer<T> allocate<T extends NativeType>({int count = 1}) {
 /// allocated in a manner equivalent to [allocate].
 ///
 /// Throws an ArgumentError on failure to free.
+///
+// TODO(dartbug.com/36855): Once we have a ffi.Bool type we can use it instead
+// of testing the return integer to be non-zero.
 void free(Pointer pointer) {
   if (Platform.isWindows) {
     if (winHeapFree(processHeap, /*flags=*/ 0, pointer) == 0) {
