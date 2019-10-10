@@ -2,7 +2,9 @@
 
 ## 0.1.2
 
-* Add allocation routines
+* Adds top-level `allocate<T>()` and `free()` methods which can be used as a
+  replacement for the deprecated `Pointer.allocate<T>()` and `Pointer.free()`
+  members in `dart:ffi`.
 
 ## 0.1.1+2
 
