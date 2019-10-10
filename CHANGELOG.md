@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.2
+
+* Add allocation routines
+
 ## 0.1.1+2
 
 * Expand readme
