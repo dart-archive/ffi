@@ -62,3 +62,35 @@ class Utf8 extends Struct {
 
   String toString() => fromUtf8(addressOf);
 }
+
+extension Utf8Pointer on Pointer<Utf8> {
+  /// Returns the String value of this Pointer.
+  String get value => Utf8.fromUtf8(this);
+
+  /// Sets a new value for this String.
+  /// If this Pointer was created using the [allocate] method or the [Utf8.toUtf8] method,
+  /// the length of the new String must not be greater then [allocatedSize(this)+1],
+  /// and this Pointer must not been freed already.
+  /// Otherwise, the length of the new String must not be greater then the length of the old String.
+  /// If these conditions are violated, a RangeError is thrown.
+  set value(String v) {
+    List<int> encoded = utf8.encode(v);
+    int maxLength = allocatedSize(this);
+    String imposed;
+    if (maxLength != null) {
+      maxLength--; // maxLength describes the length without the null-termination
+      imposed = 'the allocate method.';
+    } else {
+      maxLength = Utf8.strlen(this);
+      imposed = 'the old String.';
+    }
+    if (encoded.length <= maxLength) {
+      Uint8List nativeString = cast<Uint8>().asTypedList(maxLength + 1);
+      nativeString.setAll(0, encoded);
+      nativeString[encoded.length] = 0;
+    } else {
+      throw new RangeError(
+          'The new String (${encoded.length}) is longer then the max allowed length ($maxLength) imposed by $imposed');
+    }
+  }
+}

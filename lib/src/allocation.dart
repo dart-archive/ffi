@@ -36,6 +36,15 @@ typedef WinHeapFree = int Function(Pointer heap, int flags, Pointer memory);
 final WinHeapFree winHeapFree =
     stdlib.lookupFunction<WinHeapFreeNative, WinHeapFree>("HeapFree");
 
+
+final Map<int, int> _sizeMap = new Map<int, int>();
+
+/// Returns the size that was allocated for a Pointer using the [allocate] method.
+///
+/// If the Pointer has already been freed or was not created using the [allocate] method,
+/// null is returned.
+int allocatedSize(Pointer p) => _sizeMap[p.address];
+
 /// Allocates memory on the native heap.
 ///
 /// For POSIX-based systems, this uses malloc. On Windows, it uses HeapAlloc
@@ -54,6 +63,7 @@ Pointer<T> allocate<T extends NativeType>({int count = 1}) {
   if (result.address == 0) {
     throw ArgumentError("Could not allocate $totalSize bytes.");
   }
+  _sizeMap[result.address] = totalSize;
   return result;
 }
 
@@ -75,4 +85,5 @@ void free(Pointer pointer) {
   } else {
     posixFree(pointer);
   }
+  _sizeMap.remove(pointer.address);
 }
