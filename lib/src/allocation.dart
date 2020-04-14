@@ -36,7 +36,6 @@ typedef WinHeapFree = int Function(Pointer heap, int flags, Pointer memory);
 final WinHeapFree winHeapFree =
     stdlib.lookupFunction<WinHeapFreeNative, WinHeapFree>("HeapFree");
 
-
 final Map<int, int> _sizeMap = new Map<int, int>();
 
 /// Returns the size that was allocated for a Pointer using the [allocate] method.
