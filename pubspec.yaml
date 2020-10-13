@@ -1,13 +1,16 @@
 name: ffi
-version: 0.1.3+1
+version: 0.2.0
 homepage: https://github.com/dart-lang/ffi
 description: Utilities for working with Foreign Function Interface (FFI) code.
 
 environment:
-  sdk: '>=2.6.0 <3.0.0'
+  sdk: '>=2.10.0 <3.0.0'
 
 # dependencies:
 
 dev_dependencies:
   pedantic: ^1.0.0
   test: ^1.6.8
+
+# Cannot be published until NNBD is released to stable.
+publish_to: none
