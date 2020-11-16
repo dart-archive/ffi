@@ -3,7 +3,7 @@
 ## 0.2.0-nullsafety.0
 
 Pre-release (non-stable) release supporting null safety.
-Only works with Dart 2.12.0 releases.
+Requires Dart 2.12.0 or greater.
 
 ## 0.1.3
 
