@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.0-nullsafety.0
+## 0.2.0-nullsafety.0
 
 Pre-release (non-stable) release supporting null safety.
 Only works with Dart 2.12.0 releases.
