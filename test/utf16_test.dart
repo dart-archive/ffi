@@ -5,7 +5,7 @@
 import 'dart:ffi';
 import 'dart:typed_data';
 
-import 'package:ffi/ffi.dart';
+import 'package:ffi/ffi.dart' hide allocate;
 import 'package:test/test.dart';
 
 void main() {
@@ -15,7 +15,7 @@ void main() {
     final Uint16List end = converted.asTypedList(start.codeUnits.length + 1);
     final matcher = equals(start.codeUnits.toList()..add(0));
     expect(end, matcher);
-    free(converted);
+    malloc.free(converted);
   });
 
   test('toUtf16 emoji', () {
@@ -25,6 +25,6 @@ void main() {
     final Uint16List end = converted.cast<Uint16>().asTypedList(length + 1);
     final matcher = equals(start.codeUnits.toList()..add(0));
     expect(end, matcher);
-    free(converted);
+    malloc.free(converted);
   });
 }

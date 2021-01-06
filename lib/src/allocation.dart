@@ -66,7 +66,9 @@ void free(Pointer pointer) => malloc.free(pointer);
 ///
 /// For POSIX-based systems, this uses malloc and free. On Windows, it uses
 /// HeapAlloc and HeapFree against the default public heap.
-class MallocAllocator extends Allocator {
+class MallocAllocator implements Allocator {
+  const MallocAllocator();
+
   /// Allocates memory on the native heap.
   ///
   /// For POSIX-based systems, this uses malloc. On Windows, it uses HeapAlloc
@@ -107,4 +109,4 @@ class MallocAllocator extends Allocator {
   }
 }
 
-final malloc = MallocAllocator();
+const malloc = MallocAllocator();
