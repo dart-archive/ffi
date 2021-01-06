@@ -43,18 +43,10 @@ final WinHeapFree winHeapFree =
 /// of 0 is undefined.
 ///
 /// Throws an ArgumentError on failure to allocate.
+@Deprecated('Use malloc.allocate instead.')
 Pointer<T> allocate<T extends NativeType>({int count = 1}) {
   final int totalSize = count * sizeOf<T>();
-  Pointer<T> result;
-  if (Platform.isWindows) {
-    result = winHeapAlloc(processHeap, /*flags=*/ 0, totalSize).cast();
-  } else {
-    result = posixMalloc(totalSize).cast();
-  }
-  if (result.address == 0) {
-    throw ArgumentError('Could not allocate $totalSize bytes.');
-  }
-  return result;
+  return malloc.allocate(totalSize);
 }
 
 /// Releases memory on the native heap.
@@ -67,12 +59,52 @@ Pointer<T> allocate<T extends NativeType>({int count = 1}) {
 ///
 // TODO(dartbug.com/36855): Once we have a ffi.Bool type we can use it instead
 // of testing the return integer to be non-zero.
-void free(Pointer pointer) {
-  if (Platform.isWindows) {
-    if (winHeapFree(processHeap, /*flags=*/ 0, pointer) == 0) {
-      throw ArgumentError('Could not free $pointer.');
+@Deprecated('Use malloc.free instead.')
+void free(Pointer pointer) => malloc.free(pointer);
+
+/// Manages memory on the native heap.
+///
+/// For POSIX-based systems, this uses malloc and free. On Windows, it uses
+/// HeapAlloc and HeapFree against the default public heap.
+class MallocAllocator extends Allocator {
+  /// Allocates memory on the native heap.
+  ///
+  /// For POSIX-based systems, this uses malloc. On Windows, it uses HeapAlloc
+  /// against the default public heap.
+  ///
+  /// Throws an ArgumentError on failure to allocate.
+  Pointer<T> allocate<T extends NativeType>(int numBytes) {
+    Pointer<T> result;
+    if (Platform.isWindows) {
+      result = winHeapAlloc(processHeap, /*flags=*/ 0, numBytes).cast();
+    } else {
+      result = posixMalloc(numBytes).cast();
     }
-  } else {
-    posixFree(pointer);
+    if (result.address == 0) {
+      throw ArgumentError('Could not allocate $numBytes bytes.');
+    }
+    return result;
+  }
+
+  /// Releases memory on the native heap.
+  ///
+  /// For POSIX-based systems, this uses free. On Windows, it uses HeapFree
+  /// against the default public heap. It may only be used against pointers
+  /// allocated in a manner equivalent to [allocate].
+  ///
+  /// Throws an ArgumentError on failure to free.
+  ///
+  // TODO(dartbug.com/36855): Once we have a ffi.Bool type we can use it instead
+  // of testing the return integer to be non-zero.
+  void free(Pointer pointer) {
+    if (Platform.isWindows) {
+      if (winHeapFree(processHeap, /*flags=*/ 0, pointer) == 0) {
+        throw ArgumentError('Could not free $pointer.');
+      }
+    } else {
+      posixFree(pointer);
+    }
   }
 }
+
+final malloc = MallocAllocator();
