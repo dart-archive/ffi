@@ -22,6 +22,8 @@ jobs:
       matrix:
         sdk: [dev]
     steps:
+      - name: Fail
+        run: exit 1
       - uses: actions/checkout@v2
       - uses: dart-lang/setup-dart@v0.1
         with:
