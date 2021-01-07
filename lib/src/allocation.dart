@@ -75,7 +75,9 @@ class MallocAllocator implements Allocator {
   /// against the default public heap.
   ///
   /// Throws an ArgumentError on failure to allocate.
-  Pointer<T> allocate<T extends NativeType>(int numBytes) {
+  // TODO: Stop ignoring alignment if it's large, for example for SSE data.
+  @override
+  Pointer<T> allocate<T extends NativeType>(int numBytes, {int? alignment}) {
     Pointer<T> result;
     if (Platform.isWindows) {
       result = winHeapAlloc(processHeap, /*flags=*/ 0, numBytes).cast();
@@ -98,6 +100,7 @@ class MallocAllocator implements Allocator {
   ///
   // TODO(dartbug.com/36855): Once we have a ffi.Bool type we can use it instead
   // of testing the return integer to be non-zero.
+  @override
   void free(Pointer pointer) {
     if (Platform.isWindows) {
       if (winHeapFree(processHeap, /*flags=*/ 0, pointer) == 0) {
