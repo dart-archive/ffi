@@ -36,32 +36,6 @@ typedef WinHeapFree = int Function(Pointer heap, int flags, Pointer memory);
 final WinHeapFree winHeapFree =
     stdlib.lookupFunction<WinHeapFreeNative, WinHeapFree>('HeapFree');
 
-/// Allocates memory on the native heap.
-///
-/// For POSIX-based systems, this uses malloc. On Windows, it uses HeapAlloc
-/// against the default public heap. Allocation of either element size or count
-/// of 0 is undefined.
-///
-/// Throws an ArgumentError on failure to allocate.
-@Deprecated('Use malloc.allocate instead.')
-Pointer<T> allocate<T extends NativeType>({int count = 1}) {
-  final int totalSize = count * sizeOf<T>();
-  return malloc.allocate(totalSize);
-}
-
-/// Releases memory on the native heap.
-///
-/// For POSIX-based systems, this uses free. On Windows, it uses HeapFree
-/// against the default public heap. It may only be used against pointers
-/// allocated in a manner equivalent to [allocate].
-///
-/// Throws an ArgumentError on failure to free.
-///
-// TODO(dartbug.com/36855): Once we have a ffi.Bool type we can use it instead
-// of testing the return integer to be non-zero.
-@Deprecated('Use malloc.free instead.')
-void free(Pointer pointer) => malloc.free(pointer);
-
 /// Manages memory on the native heap.
 ///
 /// For POSIX-based systems, this uses malloc and free. On Windows, it uses
