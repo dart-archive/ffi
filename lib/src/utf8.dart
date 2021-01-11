@@ -6,7 +6,7 @@ import 'dart:convert';
 import 'dart:ffi';
 import 'dart:typed_data';
 
-import 'package:ffi/ffi.dart' hide allocate;
+import 'package:ffi/ffi.dart';
 
 const int _kMaxSmi64 = (1 << 62) - 1;
 const int _kMaxSmi32 = (1 << 30) - 1;
@@ -57,7 +57,7 @@ class Utf8 extends Struct {
   /// Returns a [allocator]-allocated pointer to the result.
   static Pointer<Utf8> toUtf8(String string, {Allocator allocator = malloc}) {
     final units = utf8.encode(string);
-    final Pointer<Uint8> result = allocate<Uint8>(allocator, units.length + 1);
+    final Pointer<Uint8> result = allocator<Uint8>(units.length + 1);
     final Uint8List nativeString = result.asTypedList(units.length + 1);
     nativeString.setAll(0, units);
     nativeString[units.length] = 0;
