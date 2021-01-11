@@ -71,18 +71,18 @@ void free(Pointer pointer) => malloc.free(pointer);
 
 /// Manages memory on the native heap.
 ///
-/// Does not intialize newly allocated memory to zero. Use [CallocAllocator]
+/// Does not intialize newly allocated memory to zero. Use [_CallocAllocator]
 /// for zero-intialized memory on allocation.
 ///
-/// For POSIX-based systems, this uses malloc and free. On Windows, it uses
-/// HeapAlloc and HeapFree against the default public heap.
-class MallocAllocator implements Allocator {
-  const MallocAllocator();
+/// For POSIX-based systems, this uses `malloc` and `free`. On Windows, it uses
+/// `HeapAlloc` and `HeapFree` against the default public heap.
+class _MallocAllocator implements Allocator {
+  const _MallocAllocator();
 
   /// Allocates uninitialized memory on the native heap.
   ///
-  /// For POSIX-based systems, this uses malloc. On Windows, it uses HeapAlloc
-  /// against the default public heap.
+  /// For POSIX-based systems, this uses `malloc`. On Windows, it uses
+  /// `HeapAlloc` against the default public heap.
   ///
   /// Throws an ArgumentError on failure to allocate.
   // TODO: Stop ignoring alignment if it's large, for example for SSE data.
@@ -102,7 +102,7 @@ class MallocAllocator implements Allocator {
 
   /// Releases memory on the native heap.
   ///
-  /// For POSIX-based systems, this uses free. On Windows, it uses HeapFree
+  /// For POSIX-based systems, this uses `free`. On Windows, it uses `HeapFree`
   /// against the default public heap. It may only be used against pointers
   /// allocated in a manner equivalent to [allocate].
   ///
@@ -122,22 +122,29 @@ class MallocAllocator implements Allocator {
   }
 }
 
-const malloc = MallocAllocator();
+/// Manages memory on the native heap.
+///
+/// Does not intialize newly allocated memory to zero. Use [calloc] for
+/// zero-intialized memory allocation.
+///
+/// For POSIX-based systems, this uses `malloc` and `free`. On Windows, it uses
+/// `HeapAlloc` and `HeapFree` against the default public heap.
+const Allocator malloc = _MallocAllocator();
 
 /// Manages memory on the native heap.
 ///
 /// Initializes newly allocated memory to zero.
 ///
-/// For POSIX-based systems, this uses calloc and free. On Windows, it uses
-/// HeapAlloc with [HEAP_ZERO_MEMORY] and HeapFree against the default public
-/// heap.
-class CallocAllocator implements Allocator {
-  const CallocAllocator();
+/// For POSIX-based systems, this uses `calloc` and `free`. On Windows, it uses
+/// `HeapAlloc` with [HEAP_ZERO_MEMORY] and `HeapFree` against the default
+/// public heap.
+class _CallocAllocator implements Allocator {
+  const _CallocAllocator();
 
   /// Allocates zero-intialized memory on the native heap.
   ///
-  /// For POSIX-based systems, this uses malloc. On Windows, it uses HeapAlloc
-  /// against the default public heap.
+  /// For POSIX-based systems, this uses `malloc`. On Windows, it uses
+  /// `HeapAlloc` against the default public heap.
   ///
   /// Throws an ArgumentError on failure to allocate.
   // TODO: Stop ignoring alignment if it's large, for example for SSE data.
@@ -158,7 +165,7 @@ class CallocAllocator implements Allocator {
 
   /// Releases memory on the native heap.
   ///
-  /// For POSIX-based systems, this uses free. On Windows, it uses HeapFree
+  /// For POSIX-based systems, this uses `free`. On Windows, it uses `HeapFree`
   /// against the default public heap. It may only be used against pointers
   /// allocated in a manner equivalent to [allocate].
   ///
@@ -178,4 +185,12 @@ class CallocAllocator implements Allocator {
   }
 }
 
-const calloc = CallocAllocator();
+/// Manages memory on the native heap.
+///
+/// Initializes newly allocated memory to zero. Use [malloc] for unintialized
+/// memory allocation.
+///
+/// For POSIX-based systems, this uses `calloc` and `free`. On Windows, it uses
+/// `HeapAlloc` with [HEAP_ZERO_MEMORY] and `HeapFree` against the default
+/// public heap.
+const Allocator calloc = _CallocAllocator();
