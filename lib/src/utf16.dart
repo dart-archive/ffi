@@ -22,7 +22,7 @@ class Utf16 extends Opaque {
   /// Returns a [allocator]-allocated pointer to the result.
   static Pointer<Utf16> toUtf16(String string, {Allocator allocator = malloc}) {
     final units = string.codeUnits;
-    final Pointer<Uint16> result = allocate<Uint16>(allocator, count: units.length + 1);
+    final Pointer<Uint16> result = allocate<Uint16>(allocator, units.length + 1);
     final Uint16List nativeString = result.asTypedList(units.length + 1);
     nativeString.setAll(0, units);
     nativeString[units.length] = 0;
