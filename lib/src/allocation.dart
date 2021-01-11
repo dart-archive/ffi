@@ -79,34 +79,36 @@ void free(Pointer pointer) => malloc.free(pointer);
 class _MallocAllocator implements Allocator {
   const _MallocAllocator();
 
-  /// Allocates uninitialized memory on the native heap.
+  /// Allocates [byteCount] bytes of of unitialized memory on the native heap.
   ///
   /// For POSIX-based systems, this uses `malloc`. On Windows, it uses
   /// `HeapAlloc` against the default public heap.
   ///
-  /// Throws an ArgumentError on failure to allocate.
+  /// Throws an [ArgumentError] if the number of bytes or alignment cannot be
+  /// satisfied.
   // TODO: Stop ignoring alignment if it's large, for example for SSE data.
   @override
-  Pointer<T> allocate<T extends NativeType>(int numBytes, {int? alignment}) {
+  Pointer<T> allocate<T extends NativeType>(int byteCount, {int? alignment}) {
     Pointer<T> result;
     if (Platform.isWindows) {
-      result = winHeapAlloc(processHeap, /*flags=*/ 0, numBytes).cast();
+      result = winHeapAlloc(processHeap, /*flags=*/ 0, byteCount).cast();
     } else {
-      result = posixMalloc(numBytes).cast();
+      result = posixMalloc(byteCount).cast();
     }
     if (result.address == 0) {
-      throw ArgumentError('Could not allocate $numBytes bytes.');
+      throw ArgumentError('Could not allocate $byteCount bytes.');
     }
     return result;
   }
 
-  /// Releases memory on the native heap.
+  /// Releases memory allocated on the native heap.
   ///
   /// For POSIX-based systems, this uses `free`. On Windows, it uses `HeapFree`
   /// against the default public heap. It may only be used against pointers
   /// allocated in a manner equivalent to [allocate].
   ///
-  /// Throws an ArgumentError on failure to free.
+  /// Throws an [ArgumentError] if the memory pointed to by [pointer] cannot be
+  /// freed.
   ///
   // TODO(dartbug.com/36855): Once we have a ffi.Bool type we can use it instead
   // of testing the return integer to be non-zero.
@@ -141,35 +143,38 @@ const Allocator malloc = _MallocAllocator();
 class _CallocAllocator implements Allocator {
   const _CallocAllocator();
 
-  /// Allocates zero-intialized memory on the native heap.
+  /// Allocates [byteCount] bytes of zero-initialized of memory on the native
+  /// heap.
   ///
   /// For POSIX-based systems, this uses `malloc`. On Windows, it uses
   /// `HeapAlloc` against the default public heap.
   ///
-  /// Throws an ArgumentError on failure to allocate.
+  /// Throws an [ArgumentError] if the number of bytes or alignment cannot be
+  /// satisfied.
   // TODO: Stop ignoring alignment if it's large, for example for SSE data.
   @override
-  Pointer<T> allocate<T extends NativeType>(int numBytes, {int? alignment}) {
+  Pointer<T> allocate<T extends NativeType>(int byteCount, {int? alignment}) {
     Pointer<T> result;
     if (Platform.isWindows) {
-      result = winHeapAlloc(processHeap, /*flags=*/ HEAP_ZERO_MEMORY, numBytes)
+      result = winHeapAlloc(processHeap, /*flags=*/ HEAP_ZERO_MEMORY, byteCount)
           .cast();
     } else {
-      result = posixCalloc(numBytes, 1).cast();
+      result = posixCalloc(byteCount, 1).cast();
     }
     if (result.address == 0) {
-      throw ArgumentError('Could not allocate $numBytes bytes.');
+      throw ArgumentError('Could not allocate $byteCount bytes.');
     }
     return result;
   }
 
-  /// Releases memory on the native heap.
+  /// Releases memory allocated on the native heap.
   ///
   /// For POSIX-based systems, this uses `free`. On Windows, it uses `HeapFree`
   /// against the default public heap. It may only be used against pointers
   /// allocated in a manner equivalent to [allocate].
   ///
-  /// Throws an ArgumentError on failure to free.
+  /// Throws an [ArgumentError] if the memory pointed to by [pointer] cannot be
+  /// freed.
   ///
   // TODO(dartbug.com/36855): Once we have a ffi.Bool type we can use it instead
   // of testing the return integer to be non-zero.
