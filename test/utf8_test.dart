@@ -5,11 +5,11 @@
 import 'dart:ffi';
 import 'dart:typed_data';
 
-import 'package:ffi/ffi.dart' hide allocate;
+import 'package:ffi/ffi.dart';
 import 'package:test/test.dart';
 
 Pointer<Uint8> _bytesFromList(List<int> ints) {
-  final Pointer<Uint8> ptr = allocate(malloc, ints.length);
+  final Pointer<Uint8> ptr = malloc(ints.length);
   final Uint8List list = ptr.asTypedList(ints.length);
   list.setAll(0, ints);
   return ptr;

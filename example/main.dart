@@ -1,10 +1,10 @@
 import 'dart:ffi';
 
-import 'package:ffi/ffi.dart' hide allocate;
+import 'package:ffi/ffi.dart';
 
 void main() {
   // Allocate and free some native memory with malloc and free.
-  final pointer = allocate<Uint8>(malloc);
+  final pointer = malloc<Uint8>();
   pointer.value = 3;
   print(pointer.value);
   malloc.free(pointer);
