@@ -45,42 +45,44 @@ const int HEAP_ZERO_MEMORY = 8;
 
 /// Manages memory on the native heap.
 ///
-/// Does not intialize newly allocated memory to zero. Use [CallocAllocator]
+/// Does not intialize newly allocated memory to zero. Use [_CallocAllocator]
 /// for zero-intialized memory on allocation.
 ///
-/// For POSIX-based systems, this uses malloc and free. On Windows, it uses
-/// HeapAlloc and HeapFree against the default public heap.
-class MallocAllocator implements Allocator {
-  const MallocAllocator();
+/// For POSIX-based systems, this uses `malloc` and `free`. On Windows, it uses
+/// `HeapAlloc` and `HeapFree` against the default public heap.
+class _MallocAllocator implements Allocator {
+  const _MallocAllocator();
 
-  /// Allocates uninitialized memory on the native heap.
+  /// Allocates [byteCount] bytes of of unitialized memory on the native heap.
   ///
-  /// For POSIX-based systems, this uses malloc. On Windows, it uses HeapAlloc
-  /// against the default public heap.
+  /// For POSIX-based systems, this uses `malloc`. On Windows, it uses
+  /// `HeapAlloc` against the default public heap.
   ///
-  /// Throws an ArgumentError on failure to allocate.
+  /// Throws an [ArgumentError] if the number of bytes or alignment cannot be
+  /// satisfied.
   // TODO: Stop ignoring alignment if it's large, for example for SSE data.
   @override
-  Pointer<T> allocate<T extends NativeType>(int numBytes, {int? alignment}) {
+  Pointer<T> allocate<T extends NativeType>(int byteCount, {int? alignment}) {
     Pointer<T> result;
     if (Platform.isWindows) {
-      result = winHeapAlloc(processHeap, /*flags=*/ 0, numBytes).cast();
+      result = winHeapAlloc(processHeap, /*flags=*/ 0, byteCount).cast();
     } else {
-      result = posixMalloc(numBytes).cast();
+      result = posixMalloc(byteCount).cast();
     }
     if (result.address == 0) {
-      throw ArgumentError('Could not allocate $numBytes bytes.');
+      throw ArgumentError('Could not allocate $byteCount bytes.');
     }
     return result;
   }
 
-  /// Releases memory on the native heap.
+  /// Releases memory allocated on the native heap.
   ///
-  /// For POSIX-based systems, this uses free. On Windows, it uses HeapFree
+  /// For POSIX-based systems, this uses `free`. On Windows, it uses `HeapFree`
   /// against the default public heap. It may only be used against pointers
   /// allocated in a manner equivalent to [allocate].
   ///
-  /// Throws an ArgumentError on failure to free.
+  /// Throws an [ArgumentError] if the memory pointed to by [pointer] cannot be
+  /// freed.
   ///
   // TODO(dartbug.com/36855): Once we have a ffi.Bool type we can use it instead
   // of testing the return integer to be non-zero.
@@ -96,47 +98,57 @@ class MallocAllocator implements Allocator {
   }
 }
 
-const malloc = MallocAllocator();
+/// Manages memory on the native heap.
+///
+/// Does not intialize newly allocated memory to zero. Use [calloc] for
+/// zero-intialized memory allocation.
+///
+/// For POSIX-based systems, this uses `malloc` and `free`. On Windows, it uses
+/// `HeapAlloc` and `HeapFree` against the default public heap.
+const Allocator malloc = _MallocAllocator();
 
 /// Manages memory on the native heap.
 ///
 /// Initializes newly allocated memory to zero.
 ///
-/// For POSIX-based systems, this uses calloc and free. On Windows, it uses
-/// HeapAlloc with [HEAP_ZERO_MEMORY] and HeapFree against the default public
-/// heap.
-class CallocAllocator implements Allocator {
-  const CallocAllocator();
+/// For POSIX-based systems, this uses `calloc` and `free`. On Windows, it uses
+/// `HeapAlloc` with [HEAP_ZERO_MEMORY] and `HeapFree` against the default
+/// public heap.
+class _CallocAllocator implements Allocator {
+  const _CallocAllocator();
 
-  /// Allocates zero-intialized memory on the native heap.
+  /// Allocates [byteCount] bytes of zero-initialized of memory on the native
+  /// heap.
   ///
-  /// For POSIX-based systems, this uses malloc. On Windows, it uses HeapAlloc
-  /// against the default public heap.
+  /// For POSIX-based systems, this uses `malloc`. On Windows, it uses
+  /// `HeapAlloc` against the default public heap.
   ///
-  /// Throws an ArgumentError on failure to allocate.
+  /// Throws an [ArgumentError] if the number of bytes or alignment cannot be
+  /// satisfied.
   // TODO: Stop ignoring alignment if it's large, for example for SSE data.
   @override
-  Pointer<T> allocate<T extends NativeType>(int numBytes, {int? alignment}) {
+  Pointer<T> allocate<T extends NativeType>(int byteCount, {int? alignment}) {
     Pointer<T> result;
     if (Platform.isWindows) {
-      result = winHeapAlloc(processHeap, /*flags=*/ HEAP_ZERO_MEMORY, numBytes)
+      result = winHeapAlloc(processHeap, /*flags=*/ HEAP_ZERO_MEMORY, byteCount)
           .cast();
     } else {
-      result = posixCalloc(numBytes, 1).cast();
+      result = posixCalloc(byteCount, 1).cast();
     }
     if (result.address == 0) {
-      throw ArgumentError('Could not allocate $numBytes bytes.');
+      throw ArgumentError('Could not allocate $byteCount bytes.');
     }
     return result;
   }
 
-  /// Releases memory on the native heap.
+  /// Releases memory allocated on the native heap.
   ///
-  /// For POSIX-based systems, this uses free. On Windows, it uses HeapFree
+  /// For POSIX-based systems, this uses `free`. On Windows, it uses `HeapFree`
   /// against the default public heap. It may only be used against pointers
   /// allocated in a manner equivalent to [allocate].
   ///
-  /// Throws an ArgumentError on failure to free.
+  /// Throws an [ArgumentError] if the memory pointed to by [pointer] cannot be
+  /// freed.
   ///
   // TODO(dartbug.com/36855): Once we have a ffi.Bool type we can use it instead
   // of testing the return integer to be non-zero.
@@ -152,4 +164,12 @@ class CallocAllocator implements Allocator {
   }
 }
 
-const calloc = CallocAllocator();
+/// Manages memory on the native heap.
+///
+/// Initializes newly allocated memory to zero. Use [malloc] for unintialized
+/// memory allocation.
+///
+/// For POSIX-based systems, this uses `calloc` and `free`. On Windows, it uses
+/// `HeapAlloc` with [HEAP_ZERO_MEMORY] and `HeapFree` against the default
+/// public heap.
+const Allocator calloc = _CallocAllocator();
