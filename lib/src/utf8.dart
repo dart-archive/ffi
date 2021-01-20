@@ -55,7 +55,7 @@ class Utf8 extends Opaque {
   /// in the UTF-8 encoded result. See [Utf8Encoder] for details on encoding.
   ///
   /// Returns a [allocator]-allocated pointer to the result.
-  static Pointer<Utf8> toUtf8(String string, {Allocator allocator = malloc}) {
+  static Pointer<Utf8> toUtf8(String string, {Allocator allocator = calloc}) {
     final units = utf8.encode(string);
     final Pointer<Uint8> result = allocator<Uint8>(units.length + 1);
     final Uint8List nativeString = result.asTypedList(units.length + 1);

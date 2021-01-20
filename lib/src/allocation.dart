@@ -71,8 +71,8 @@ void free(Pointer pointer) => calloc.free(pointer);
 
 /// Manages memory on the native heap.
 ///
-/// Does not intialize newly allocated memory to zero. Use [_CallocAllocator]
-/// for zero-intialized memory on allocation.
+/// Does not initialize newly allocated memory to zero. Use [_CallocAllocator]
+/// for zero-initialized memory on allocation.
 ///
 /// For POSIX-based systems, this uses `malloc` and `free`. On Windows, it uses
 /// `HeapAlloc` and `HeapFree` against the default public heap.
@@ -126,8 +126,8 @@ class _MallocAllocator implements Allocator {
 
 /// Manages memory on the native heap.
 ///
-/// Does not intialize newly allocated memory to zero. Use [calloc] for
-/// zero-intialized memory allocation.
+/// Does not initialize newly allocated memory to zero. Use [calloc] for
+/// zero-initialized memory allocation.
 ///
 /// For POSIX-based systems, this uses `malloc` and `free`. On Windows, it uses
 /// `HeapAlloc` and `HeapFree` against the default public heap.
@@ -192,7 +192,7 @@ class _CallocAllocator implements Allocator {
 
 /// Manages memory on the native heap.
 ///
-/// Initializes newly allocated memory to zero. Use [malloc] for unintialized
+/// Initializes newly allocated memory to zero. Use [malloc] for uninitialized
 /// memory allocation.
 ///
 /// For POSIX-based systems, this uses `calloc` and `free`. On Windows, it uses
