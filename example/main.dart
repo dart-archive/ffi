@@ -1,6 +1,6 @@
 import 'dart:ffi';
 
-import 'package:ffi/ffi.dart';
+import 'package:ffi/ffi.dart' hide allocate;
 
 void main() {
   // Allocate and free some native memory with malloc and free.
