@@ -43,10 +43,36 @@ final WinHeapFree winHeapFree =
 
 const int HEAP_ZERO_MEMORY = 8;
 
+/// Allocates memory on the native heap.
+///
+/// For POSIX-based systems, this uses calloc. On Windows, it uses HeapAlloc
+/// against the default public heap. Allocation of either element size or count
+/// of 0 is undefined.
+///
+/// Throws an ArgumentError on failure to allocate.
+@Deprecated('Use calloc.allocate instead.')
+Pointer<T> allocate<T extends NativeType>({int count = 1}) {
+  final int totalSize = count * sizeOf<T>();
+  return calloc.allocate(totalSize);
+}
+
+/// Releases memory on the native heap.
+///
+/// For POSIX-based systems, this uses free. On Windows, it uses HeapFree
+/// against the default public heap. It may only be used against pointers
+/// allocated in a manner equivalent to [allocate].
+///
+/// Throws an ArgumentError on failure to free.
+///
+// TODO(dartbug.com/36855): Once we have a ffi.Bool type we can use it instead
+// of testing the return integer to be non-zero.
+@Deprecated('Use calloc.free instead.')
+void free(Pointer pointer) => calloc.free(pointer);
+
 /// Manages memory on the native heap.
 ///
-/// Does not intialize newly allocated memory to zero. Use [_CallocAllocator]
-/// for zero-intialized memory on allocation.
+/// Does not initialize newly allocated memory to zero. Use [_CallocAllocator]
+/// for zero-initialized memory on allocation.
 ///
 /// For POSIX-based systems, this uses `malloc` and `free`. On Windows, it uses
 /// `HeapAlloc` and `HeapFree` against the default public heap.
@@ -100,8 +126,8 @@ class _MallocAllocator implements Allocator {
 
 /// Manages memory on the native heap.
 ///
-/// Does not intialize newly allocated memory to zero. Use [calloc] for
-/// zero-intialized memory allocation.
+/// Does not initialize newly allocated memory to zero. Use [calloc] for
+/// zero-initialized memory allocation.
 ///
 /// For POSIX-based systems, this uses `malloc` and `free`. On Windows, it uses
 /// `HeapAlloc` and `HeapFree` against the default public heap.
@@ -166,7 +192,7 @@ class _CallocAllocator implements Allocator {
 
 /// Manages memory on the native heap.
 ///
-/// Initializes newly allocated memory to zero. Use [malloc] for unintialized
+/// Initializes newly allocated memory to zero. Use [malloc] for uninitialized
 /// memory allocation.
 ///
 /// For POSIX-based systems, this uses `calloc` and `free`. On Windows, it uses
