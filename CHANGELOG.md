@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.0-nullsafety.0
+
+Bumping the version of this package to 1.0.
+
+This pre-release requires Dart `2.12.0-259.9.beta` or greater.
+
 ## 0.3.0-nullsafety.1
 
 This pre-release requires Dart `2.12.0-259.8.beta` or greater.
