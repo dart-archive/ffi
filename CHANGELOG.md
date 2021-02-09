@@ -4,6 +4,13 @@
 
 Bumping the version of this package to 1.0.
 
+Removes `allocate` and `free` again, use `0.3.0-nullsafety.2` for migration.
+
+## 0.3.0-nullsafety.2
+
+Adds back in deprecated `allocate` and `free` to ease migration.
+These will be removed in the next release.
+
 This pre-release requires Dart `2.12.0-259.9.beta` or greater.
 
 ## 0.3.0-nullsafety.1
