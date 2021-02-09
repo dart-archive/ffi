@@ -26,6 +26,25 @@ class Utf16 extends Opaque {
   }
 }
 
+extension Utf16Pointer on Pointer<Utf16> {
+  /// Creates a [String] containing the characters UTF-16 encoded in this
+  /// Pointer.
+  String toDartString(int maxLength) {
+    final buffer = StringBuffer();
+    final pointer = Pointer<Uint16>.fromAddress(address);
+
+    for (var v = 0; v < maxLength; v++) {
+      final charCode = pointer.elementAt(v).value;
+      if (charCode != 0) {
+        buffer.write(String.fromCharCode(charCode));
+      } else {
+        return buffer.toString();
+      }
+    }
+    return buffer.toString();
+  }
+}
+
 extension StringUtf16Pointer on String {
   /// Convert a [String] to a UTF-16 encoded zero-terminated C string.
   ///

@@ -64,7 +64,8 @@ extension Utf8Pointer on Pointer<Utf8> {
     return length;
   }
 
-  /// Creates a [String] containing the characters UTF-8 encoded in [string].
+  /// Creates a [String] containing the characters UTF-8 encoded in this
+  /// Pointer.
   ///
   /// Either the [string] must be zero-terminated or its [length] &mdash; the
   /// number of bytes &mdash; must be specified as a non-negative value. The
