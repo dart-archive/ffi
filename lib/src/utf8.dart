@@ -33,9 +33,9 @@ class Utf8 extends Opaque {
   /// for details on decoding.
   ///
   /// Returns a Dart string containing the decoded code points.
-  @Deprecated('Use Utf8Pointer.fromUtf8 instead.')
+  @Deprecated('Use Utf8Pointer.toDartString instead.')
   static String fromUtf8(Pointer<Utf8> string, {int? length}) {
-    return string.fromUtf8(length: length);
+    return string.toDartString(length: length);
   }
 
   /// Convert a [String] to a UTF-8 encoded zero-terminated C string.
@@ -73,7 +73,7 @@ extension Utf8Pointer on Pointer<Utf8> {
   /// for details on decoding.
   ///
   /// Returns a Dart string containing the decoded code points.
-  String fromUtf8({int? length}) {
+  String toDartString({int? length}) {
     if (length != null) {
       RangeError.checkNotNegative(length, 'length');
     } else {

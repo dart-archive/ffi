@@ -13,6 +13,6 @@ void main() {
   final String myString = '😎👿💬';
   final Pointer<Utf8> charPointer = myString.toUtf8();
   print('First byte is: ${charPointer.cast<Uint8>().value}');
-  print(charPointer.fromUtf8());
+  print(charPointer.toDartString());
   calloc.free(charPointer);
 }
