@@ -19,9 +19,9 @@ import 'package:ffi/ffi.dart';
 class Utf8 extends Opaque {
   /// Returns the length of a zero-terminated string &mdash; the number of
   /// bytes before the first zero byte.
-  @Deprecated('Use Utf8Pointer.strlen instead.')
+  @Deprecated('Use Utf8Pointer.length instead.')
   static int strlen(Pointer<Utf8> string) {
-    return string.strlen();
+    return string.length;
   }
 
   /// Creates a [String] containing the characters UTF-8 encoded in [string].
@@ -55,7 +55,7 @@ class Utf8 extends Opaque {
 extension Utf8Pointer on Pointer<Utf8> {
   /// Returns the length of a zero-terminated string &mdash; the number of
   /// bytes before the first zero byte.
-  int strlen() {
+  int get length {
     final Pointer<Uint8> array = cast<Uint8>();
     int length = 0;
     while (array[length] != 0) {
@@ -77,7 +77,7 @@ extension Utf8Pointer on Pointer<Utf8> {
     if (length != null) {
       RangeError.checkNotNegative(length, 'length');
     } else {
-      length = strlen();
+      length = this.length;
     }
     return utf8.decode(cast<Uint8>().asTypedList(length));
   }

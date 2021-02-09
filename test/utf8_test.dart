@@ -36,7 +36,7 @@ void main() {
   test('toUtf8 emoji', () {
     final String start = '😎👿💬';
     final Pointer<Utf8> converted = start.toUtf8().cast();
-    final int length = converted.strlen();
+    final int length = converted.length;
     final Uint8List end = converted.cast<Uint8>().asTypedList(length + 1);
     final matcher =
         equals([240, 159, 152, 142, 240, 159, 145, 191, 240, 159, 146, 172, 0]);
