@@ -18,7 +18,7 @@ Pointer<Uint8> _bytesFromList(List<int> ints) {
 void main() {
   test('toUtf8 ASCII', () {
     final String start = 'Hello World!\n';
-    final Pointer<Uint8> converted = start.toUtf8().cast();
+    final Pointer<Uint8> converted = start.toNativeUtf8().cast();
     final Uint8List end = converted.asTypedList(start.length + 1);
     final matcher =
         equals([72, 101, 108, 108, 111, 32, 87, 111, 114, 108, 100, 33, 10, 0]);
@@ -35,7 +35,7 @@ void main() {
 
   test('toUtf8 emoji', () {
     final String start = '😎👿💬';
-    final Pointer<Utf8> converted = start.toUtf8().cast();
+    final Pointer<Utf8> converted = start.toNativeUtf8().cast();
     final int length = converted.length;
     final Uint8List end = converted.cast<Uint8>().asTypedList(length + 1);
     final matcher =
@@ -88,5 +88,12 @@ void main() {
         [72, 101, 108, 108, 111, 0, 87, 111, 114, 108, 100, 33, 10]).cast();
     final String end = utf8.toDartString(length: 13);
     expect(end, 'Hello\x00World!\n');
+  });
+
+  test('length', () {
+    final string = 'Hello';
+    final utf8Pointer = string.toNativeUtf8();
+    expect(utf8Pointer.length, 5);
+    calloc.free(utf8Pointer);
   });
 }

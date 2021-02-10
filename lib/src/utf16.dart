@@ -7,53 +7,73 @@ import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
 
-/// [Utf16] implements conversion between Dart strings and zero-terminated
-/// UTF-16 encoded "char*" strings in C.
+/// The contents of a native zero-terminated array of UTF-16 code units.
 ///
-/// [Utf16] is represented as [Opaque] so that `Pointer<Utf16>` can be used in
-/// native function signatures.
+/// The Utf16 type itself has no functionality, it's only intended to be used
+/// through a `Pointer<Utf16>` representing the entire array. This pointer is
+/// the equivalent of a char pointer (`const wchar_t*`) in C code. The
+/// individual UTF-16 code units are stored in native byte order.
 class Utf16 extends Opaque {
-  /// Convert a [String] to a UTF-16 encoded zero-terminated C string.
+  /// Creates a zero-terminated [Utf16] code-unit array from [string].
   ///
-  /// If [string] contains NULL characters, the converted string will be truncated
-  /// prematurely. Unpaired surrogate code points in [string] will be preserved
-  /// in the UTF-16 encoded result. See [Utf16Encoder] for details on encoding.
+  /// If [string] contains NUL characters, the converted string will be truncated
+  /// prematurely.
   ///
-  /// Returns a [allocator]-allocated pointer to the result.
-  @Deprecated('Use StringUtf16Pointer.toUtf16 instead.')
+  /// Returns an [allocator]-allocated pointer to the result.
+  @Deprecated('Use StringUtf16Pointer.toNativeUtf16 instead.')
   static Pointer<Utf16> toUtf16(String string, {Allocator allocator = calloc}) {
-    return string.toUtf16(allocator: allocator);
+    return string.toNativeUtf16(allocator: allocator);
   }
 }
 
 extension Utf16Pointer on Pointer<Utf16> {
-  /// Creates a [String] containing the characters UTF-16 encoded in this
-  /// Pointer.
-  String toDartString(int maxLength) {
-    final buffer = StringBuffer();
-    final pointer = Pointer<Uint16>.fromAddress(address);
+  /// The number of UTF-16 code units in this zero-terminated UTF-16 string.
+  ///
+  /// The UTF-16 code units of the strings are the non-zero code units up to
+  /// the first zero code unit.
+  int get length {
+    final Pointer<Uint16> array = cast<Uint16>();
+    int length = 0;
+    while (array[length] != 0) {
+      length++;
+    }
+    return length;
+  }
 
-    for (var v = 0; v < maxLength; v++) {
+  /// Converts this UTF-8 encoded string to a Dart string.
+  ///
+  /// Decodes the UTF-16 code units of this zero-terminated code unit array as
+  /// Unicode code points and creates a Dart string containing those code
+  /// points.
+  ///
+  /// If [length] is provided, zero-termination is ignored and the result can
+  /// contain NUL characters.
+  String toDartString({int? length}) {
+    if (length != null) {
+      RangeError.checkNotNegative(length, 'length');
+    } else {
+      length = this.length;
+    }
+
+    final buffer = StringBuffer();
+    final pointer = cast<Uint16>();
+
+    for (var v = 0; v < length; v++) {
       final charCode = pointer.elementAt(v).value;
-      if (charCode != 0) {
-        buffer.write(String.fromCharCode(charCode));
-      } else {
-        return buffer.toString();
-      }
+      buffer.writeCharCode(charCode);
     }
     return buffer.toString();
   }
 }
 
 extension StringUtf16Pointer on String {
-  /// Convert a [String] to a UTF-16 encoded zero-terminated C string.
+  /// Creates a zero-terminated [Utf16] code-unit array from this String.
   ///
-  /// If [string] contains NULL characters, the converted string will be truncated
-  /// prematurely. Unpaired surrogate code points in [string] will be preserved
-  /// in the UTF-16 encoded result. See [Utf16Encoder] for details on encoding.
+  /// If this [String] contains NUL characters, the converted string will be
+  /// truncated prematurely.
   ///
-  /// Returns a [allocator]-allocated pointer to the result.
-  Pointer<Utf16> toUtf16({Allocator allocator = calloc}) {
+  /// Returns an [allocator]-allocated pointer to the result.
+  Pointer<Utf16> toNativeUtf16({Allocator allocator = calloc}) {
     final units = codeUnits;
     final Pointer<Uint16> result = allocator<Uint16>(units.length + 1);
     final Uint16List nativeString = result.asTypedList(units.length + 1);
