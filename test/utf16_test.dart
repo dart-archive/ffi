@@ -58,4 +58,9 @@ void main() {
     expect(utf16Pointer.length, 5);
     calloc.free(utf16Pointer);
   });
+
+  test('fromUtf8 with negative length', () {
+    final Pointer<Utf16> utf16 = Pointer.fromAddress(0);
+    expect(() => utf16.toDartString(length: -1), throwsRangeError);
+  });
 }

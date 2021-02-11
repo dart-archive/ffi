@@ -26,6 +26,7 @@ class Utf16 extends Opaque {
   }
 }
 
+/// Extension method for converting a`Pointer<Utf16>` to a [String].
 extension Utf16Pointer on Pointer<Utf16> {
   /// The number of UTF-16 code units in this zero-terminated UTF-16 string.
   ///
@@ -40,7 +41,7 @@ extension Utf16Pointer on Pointer<Utf16> {
     return length;
   }
 
-  /// Converts this UTF-8 encoded string to a Dart string.
+  /// Converts this UTF-16 encoded string to a Dart string.
   ///
   /// Decodes the UTF-16 code units of this zero-terminated code unit array as
   /// Unicode code points and creates a Dart string containing those code
@@ -49,35 +50,45 @@ extension Utf16Pointer on Pointer<Utf16> {
   /// If [length] is provided, zero-termination is ignored and the result can
   /// contain NUL characters.
   String toDartString({int? length}) {
-    if (length != null) {
-      RangeError.checkNotNegative(length, 'length');
+    if (length == null) {
+      return _toUnknownLengthString(cast<Uint16>());
     } else {
-      length = this.length;
+      RangeError.checkNotNegative(length, 'length');
+      return _toKnownLengthString(cast<Uint16>(), length);
     }
+  }
 
+  static String _toKnownLengthString(Pointer<Uint16> codeUnits, int length) =>
+      String.fromCharCodes(codeUnits.asTypedList(length));
+
+  static String _toUnknownLengthString(Pointer<Uint16> codeUnits) {
     final buffer = StringBuffer();
-    final pointer = cast<Uint16>();
-
-    for (var v = 0; v < length; v++) {
-      final charCode = pointer.elementAt(v).value;
-      buffer.writeCharCode(charCode);
+    var i = 0;
+    while (true) {
+      final char = codeUnits.elementAt(i).value;
+      if (char == 0) {
+        return buffer.toString();
+      }
+      buffer.writeCharCode(char);
+      i++;
     }
-    return buffer.toString();
   }
 }
 
+/// Extension method for converting a [String] to a `Pointer<Utf16>`.
 extension StringUtf16Pointer on String {
   /// Creates a zero-terminated [Utf16] code-unit array from this String.
   ///
-  /// If this [String] contains NUL characters, the converted string will be
-  /// truncated prematurely.
+  /// If this [String] contains NUL characters, converting it back to a string
+  /// using [Utf16Pointer.toDartString] will truncate the result if a length is
+  /// not passed.
   ///
   /// Returns an [allocator]-allocated pointer to the result.
-  Pointer<Utf16> toNativeUtf16({Allocator allocator = calloc}) {
+  Pointer<Utf16> toNativeUtf16({Allocator allocator = malloc}) {
     final units = codeUnits;
     final Pointer<Uint16> result = allocator<Uint16>(units.length + 1);
     final Uint16List nativeString = result.asTypedList(units.length + 1);
-    nativeString.setAll(0, units);
+    nativeString.setRange(0, units.length, units);
     nativeString[units.length] = 0;
     return result.cast();
   }

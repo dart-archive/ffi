@@ -12,8 +12,7 @@ import 'package:ffi/ffi.dart';
 ///
 /// The Utf8 type itself has no functionality, it's only intended to be used
 /// through a `Pointer<Utf8>` representing the entire array. This pointer is
-/// the equivalent of a char pointer (`const char*`) in C code. The individual
-/// UTF-16 code units are stored in native byte order.
+/// the equivalent of a char pointer (`const char*`) in C code.
 class Utf8 extends Opaque {
   /// The number of UTF-8 code units in this zero-terminated UTF-8 string.
   ///
@@ -51,6 +50,7 @@ class Utf8 extends Opaque {
   }
 }
 
+/// Extension method for converting a`Pointer<Utf8>` to a [String].
 extension Utf8Pointer on Pointer<Utf8> {
   /// The number of UTF-8 code units in this zero-terminated UTF-8 string.
   ///
@@ -83,17 +83,20 @@ extension Utf8Pointer on Pointer<Utf8> {
   }
 }
 
+/// Extension method for converting a [String] to a `Pointer<Utf8>`.
 extension StringUtf8Pointer on String {
   /// Creates a zero-terminated [Utf8] code-unit array from this String.
   ///
-  /// If this [String] contains NUL characters, the converted string will be
-  /// truncated prematurely. Unpaired surrogate code points in this [String]
-  /// will be encoded as replacement characters (U+FFFD, encoded as the bytes
-  /// 0xEF 0xBF 0xBD) in the UTF-8 encoded result. See [Utf8Encoder] for
-  /// details on encoding.
+  /// If this [String] contains NUL characters, converting it back to a string
+  /// using [Utf8Pointer.toDartString] will truncate the result if a length is
+  /// not passed.
+  ///
+  /// Unpaired surrogate code points in this [String] will be encoded as
+  /// replacement characters (U+FFFD, encoded as the bytes 0xEF 0xBF 0xBD) in
+  /// the UTF-8 encoded result. See [Utf8Encoder] for details on encoding.
   ///
   /// Returns an [allocator]-allocated pointer to the result.
-  Pointer<Utf8> toNativeUtf8({Allocator allocator = calloc}) {
+  Pointer<Utf8> toNativeUtf8({Allocator allocator = malloc}) {
     final units = utf8.encode(this);
     final Pointer<Uint8> result = allocator<Uint8>(units.length + 1);
     final Uint8List nativeString = result.asTypedList(units.length + 1);
