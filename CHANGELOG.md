@@ -1,8 +1,8 @@
 # Changelog
 
-## 1.0.0-nullsafety.0
+## 1.0.0
 
-Bumping the version of this package to 1.0.
+Bumping the version of this package to `1.0.0`.
 
 Removes all deprecated methods, use `0.3.0-nullsafety.3` for migration.
 
