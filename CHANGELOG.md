@@ -4,9 +4,14 @@
 
 Bumping the version of this package to 1.0.
 
-Removes `allocate` and `free` again, use `0.3.0-nullsafety.2` for migration.
+Removes all deprecated methods, use `0.3.0-nullsafety.3` for migration.
 
-## 0.3.0-nullsafety.2
+## 0.3.1-nullsafety.0
+
+Deprecates the static methods on `Utf8` and `Utf16` and introduces
+extension methods to replace them.
+
+## 0.3.0-nullsafety.3
 
 Adds back in deprecated `allocate` and `free` to ease migration.
 These will be removed in the next release.
