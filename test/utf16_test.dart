@@ -18,6 +18,12 @@ void main() {
     calloc.free(converted);
   });
 
+  test('toUtf16 null', () {
+    final String? start = null;
+    final Pointer<Uint16> converted = start.toNativeUtf16().cast();
+    expect(converted, nullptr);
+  });
+
   test('toUtf16 emoji', () {
     final String start = '😎';
     final Pointer<Utf16> converted = start.toNativeUtf16().cast();
@@ -34,6 +40,12 @@ void main() {
     final stringAgain = utf16Pointer.toDartString();
     expect(stringAgain, string);
     calloc.free(utf16Pointer);
+  });
+
+  test('from Utf16 null', () {
+    final Pointer<Utf16> utf16 = nullptr.cast();
+    final String? end = utf16.toDartString();
+    expect(end, null);
   });
 
   test('from Utf16 emoji', () {
@@ -60,7 +72,14 @@ void main() {
   });
 
   test('fromUtf8 with negative length', () {
-    final Pointer<Utf16> utf16 = Pointer.fromAddress(0);
-    expect(() => utf16.toDartString(length: -1), throwsRangeError);
+    final string = 'Hello';
+    final utf16Pointer = string.toNativeUtf16();
+    expect(() => utf16Pointer.toDartString(length: -1), throwsRangeError);
+    calloc.free(utf16Pointer);
+  });
+
+  test('length', () {
+    final utf16Pointer = null.toNativeUtf16();
+    expect(utf16Pointer.length, 0);
   });
 }

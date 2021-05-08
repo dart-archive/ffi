@@ -21,7 +21,13 @@ extension Utf8Pointer on Pointer<Utf8> {
   ///
   /// The UTF-8 code units of the strings are the non-zero code units up to the
   /// first zero code unit.
+  ///
+  /// Returns 0 if this is a [nullptr].
   int get length {
+    if (this == nullptr) {
+      return 0;
+    }
+
     final Pointer<Uint8> array = cast<Uint8>();
     int length = 0;
     while (array[length] != 0) {
@@ -38,7 +44,13 @@ extension Utf8Pointer on Pointer<Utf8> {
   ///
   /// If [length] is provided, zero-termination is ignored and the result can
   /// contain NUL characters.
-  String toDartString({int? length}) {
+  ///
+  /// Returns `null` if this is a [nullptr].
+  String? toDartString({int? length}) {
+    if (this == nullptr) {
+      return null;
+    }
+
     if (length != null) {
       RangeError.checkNotNegative(length, 'length');
     } else {
@@ -49,7 +61,7 @@ extension Utf8Pointer on Pointer<Utf8> {
 }
 
 /// Extension method for converting a [String] to a `Pointer<Utf8>`.
-extension StringUtf8Pointer on String {
+extension StringUtf8Pointer on String? {
   /// Creates a zero-terminated [Utf8] code-unit array from this String.
   ///
   /// If this [String] contains NUL characters, converting it back to a string
@@ -61,8 +73,16 @@ extension StringUtf8Pointer on String {
   /// the UTF-8 encoded result. See [Utf8Encoder] for details on encoding.
   ///
   /// Returns an [allocator]-allocated pointer to the result.
+  ///
+  /// Returns [nullptr] if this is `null`.
   Pointer<Utf8> toNativeUtf8({Allocator allocator = malloc}) {
-    final units = utf8.encode(this);
+    final string = this;
+
+    if (string == null) {
+      return nullptr;
+    }
+
+    final units = utf8.encode(string);
     final Pointer<Uint8> result = allocator<Uint8>(units.length + 1);
     final Uint8List nativeString = result.asTypedList(units.length + 1);
     nativeString.setAll(0, units);

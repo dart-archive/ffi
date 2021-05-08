@@ -21,7 +21,13 @@ extension Utf16Pointer on Pointer<Utf16> {
   ///
   /// The UTF-16 code units of the strings are the non-zero code units up to
   /// the first zero code unit.
+  ///
+  /// Returns 0 if this is a [nullptr].
   int get length {
+    if (this == nullptr) {
+      return 0;
+    }
+
     final Pointer<Uint16> array = cast<Uint16>();
     int length = 0;
     while (array[length] != 0) {
@@ -38,7 +44,13 @@ extension Utf16Pointer on Pointer<Utf16> {
   ///
   /// If [length] is provided, zero-termination is ignored and the result can
   /// contain NUL characters.
-  String toDartString({int? length}) {
+  ///
+  /// Returns `null` if this is a [nullptr].
+  String? toDartString({int? length}) {
+    if (this == nullptr) {
+      return null;
+    }
+
     if (length == null) {
       return _toUnknownLengthString(cast<Uint16>());
     } else {
@@ -65,7 +77,7 @@ extension Utf16Pointer on Pointer<Utf16> {
 }
 
 /// Extension method for converting a [String] to a `Pointer<Utf16>`.
-extension StringUtf16Pointer on String {
+extension StringUtf16Pointer on String? {
   /// Creates a zero-terminated [Utf16] code-unit array from this String.
   ///
   /// If this [String] contains NUL characters, converting it back to a string
@@ -73,8 +85,16 @@ extension StringUtf16Pointer on String {
   /// not passed.
   ///
   /// Returns an [allocator]-allocated pointer to the result.
+  ///
+  /// Returns [nullptr] if this is `null`.
   Pointer<Utf16> toNativeUtf16({Allocator allocator = malloc}) {
-    final units = codeUnits;
+    final string = this;
+
+    if (string == null) {
+      return nullptr;
+    }
+
+    final units = string.codeUnits;
     final Pointer<Uint16> result = allocator<Uint16>(units.length + 1);
     final Uint16List nativeString = result.asTypedList(units.length + 1);
     nativeString.setRange(0, units.length, units);
