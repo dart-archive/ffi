@@ -29,7 +29,7 @@ class Pool implements Allocator {
   final List<Pointer<NativeType>> _managedMemoryPointers = [];
 
   /// Callbacks for releasing native resources under management by this [Pool].
-  final List<Function()> _managedResourceReleaseCallbacks = [];
+  final List<void Function()> _managedResourceReleaseCallbacks = [];
 
   bool _inUse = true;
 
@@ -57,7 +57,10 @@ class Pool implements Allocator {
   /// Registers [resource] in this pool.
   ///
   /// Executes [releaseCallback] on [releaseAll].
-  T using<T>(T resource, Function(T) releaseCallback) {
+  ///
+  /// Returns [resource] again, to allow for easily inserting
+  /// `pool.using(resource, ...)` where the resource is allocated.
+  T using<T>(T resource, void Function(T) releaseCallback) {
     _ensureInUse();
     releaseCallback = Zone.current.bindUnaryCallback(releaseCallback);
     _managedResourceReleaseCallbacks.add(() => releaseCallback(resource));
@@ -65,7 +68,7 @@ class Pool implements Allocator {
   }
 
   /// Registers [releaseResourceCallback] to be executed on [releaseAll].
-  void onReleaseAll(Function() releaseResourceCallback) {
+  void onReleaseAll(void Function() releaseResourceCallback) {
     _managedResourceReleaseCallbacks.add(releaseResourceCallback);
   }
 
@@ -74,10 +77,16 @@ class Pool implements Allocator {
   /// If [reuse] is `true`, the pool can be used again after resources
   /// have been released. If not, the default, then the [allocate]
   /// and [using] methods must not be called after a call to `releaseAll`.
+  ///
+  /// If any of the callbacks throw, [releaseAll] is interrupted, and should
+  /// be started again.
   void releaseAll({bool reuse = false}) {
     if (!reuse) {
       _inUse = false;
     }
+    // The code below is deliberately wirtten to allow allocations to happen
+    // during `releaseAll(reuse:true)`. The pool will still be guaranteed
+    // empty when the `releaseAll` call returns.
     while (_managedResourceReleaseCallbacks.isNotEmpty) {
       _managedResourceReleaseCallbacks.removeLast()();
     }
@@ -99,9 +108,11 @@ class Pool implements Allocator {
   }
 }
 
-/// Runs [computation] with a new [Pool], and releases all allocations at the end.
+/// Runs [computation] with a new [Pool], and releases all allocations at the
+/// end.
 ///
-/// If [R] is a [Future], all allocations are released when the future completes.
+/// If the return value of [computation] is a [Future], all allocations are
+/// released when the future completes.
 ///
 /// If the isolate is shut down, through `Isolate.kill()`, resources are _not_
 /// cleaned up.
@@ -145,7 +156,7 @@ R withZonePool<R>(R Function() computation,
   } finally {
     if (!isAsync) {
       pool.releaseAll();
-      poolHolder.remove(pool);
+      poolHolder.clear();
     }
   }
 }
@@ -167,5 +178,5 @@ Pool get zonePool {
   if (poolHolder.isNotEmpty) {
     return poolHolder.single;
   }
-  throw StateError('Pool as already been cleared with releaseAll.');
+  throw StateError('Pool has already been cleared with releaseAll.');
 }

@@ -1,8 +1,6 @@
-// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-//
-// Sample illustrating resource management with an explicit pool.
 
 import 'dart:async';
 import 'dart:ffi';
@@ -166,6 +164,23 @@ void main() async {
     }
     expect(didThrow, true);
     expect(freed.single, 1234);
+  });
+
+  test('allocate during releaseAll', () {
+    final countingAllocator = CountingAllocator();
+    final pool = Pool(countingAllocator);
+
+    pool.using(pool<Uint8>(), (Pointer discard) {
+      pool<Uint8>();
+    });
+
+    expect(countingAllocator.numAllocations, 1);
+    expect(countingAllocator.numFrees, 0);
+
+    pool.releaseAll(reuse: true);
+
+    expect(countingAllocator.numAllocations, 2);
+    expect(countingAllocator.numFrees, 2);
   });
 }
 
