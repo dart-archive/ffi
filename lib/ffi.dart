@@ -3,6 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 export 'src/allocation.dart' show calloc, malloc;
-export 'src/pool.dart';
+export 'src/arena.dart';
 export 'src/utf8.dart';
 export 'src/utf16.dart';

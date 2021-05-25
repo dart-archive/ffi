@@ -2,7 +2,7 @@
 
 ## 1.1.0
 
-Adds the `pool` allocator.
+Adds the `arena` allocator.
 
 ## 1.0.0
 

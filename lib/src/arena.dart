@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// Explicit pool used for managing resources.
+// Explicit arena used for managing resources.
 
 import 'dart:async';
 import 'dart:ffi';
@@ -11,37 +11,37 @@ import 'package:ffi/ffi.dart';
 
 /// An [Allocator] which frees all allocations at the same time.
 ///
-/// The pool allows you to allocate heap memory, but ignores calls to [free].
+/// The arena allows you to allocate heap memory, but ignores calls to [free].
 /// Instead you call [releaseAll] to release all the allocations at the same
 /// time.
 ///
-/// Also allows other resources to be associated with the pool, through the
-/// [using] method, to have a release function called for them when the pool is
-/// released.
+/// Also allows other resources to be associated with the arena, through the
+/// [using] method, to have a release function called for them when the arena
+/// is released.
 ///
 /// An [Allocator] can be provided to do the actual allocation and freeing.
 /// Defaults to using [calloc].
-class Pool implements Allocator {
+class Arena implements Allocator {
   /// The [Allocator] used for allocation and freeing.
   final Allocator _wrappedAllocator;
 
-  /// Native memory under management by this [Pool].
+  /// Native memory under management by this [Arena].
   final List<Pointer<NativeType>> _managedMemoryPointers = [];
 
-  /// Callbacks for releasing native resources under management by this [Pool].
+  /// Callbacks for releasing native resources under management by this [Arena].
   final List<void Function()> _managedResourceReleaseCallbacks = [];
 
   bool _inUse = true;
 
-  /// Creates a pool of allocations.
+  /// Creates a arena of allocations.
   ///
   /// The [allocator] is used to do the actual allocation and freeing of
   /// memory. It defaults to using [calloc].
-  Pool([Allocator allocator = calloc]) : _wrappedAllocator = allocator;
+  Arena([Allocator allocator = calloc]) : _wrappedAllocator = allocator;
 
-  /// Allocates memory and includes it in the pool.
+  /// Allocates memory and includes it in the arena.
   ///
-  /// Uses the allocator provided to the [Pool] constructor to do the
+  /// Uses the allocator provided to the [Arena] constructor to do the
   /// allocation.
   ///
   /// Throws an [ArgumentError] if the number of bytes or alignment cannot be
@@ -54,12 +54,12 @@ class Pool implements Allocator {
     return p;
   }
 
-  /// Registers [resource] in this pool.
+  /// Registers [resource] in this arena.
   ///
   /// Executes [releaseCallback] on [releaseAll].
   ///
   /// Returns [resource] again, to allow for easily inserting
-  /// `pool.using(resource, ...)` where the resource is allocated.
+  /// `arena.using(resource, ...)` where the resource is allocated.
   T using<T>(T resource, void Function(T) releaseCallback) {
     _ensureInUse();
     releaseCallback = Zone.current.bindUnaryCallback(releaseCallback);
@@ -72,9 +72,9 @@ class Pool implements Allocator {
     _managedResourceReleaseCallbacks.add(releaseResourceCallback);
   }
 
-  /// Releases all resources that this [Pool] manages.
+  /// Releases all resources that this [Arena] manages.
   ///
-  /// If [reuse] is `true`, the pool can be used again after resources
+  /// If [reuse] is `true`, the arena can be used again after resources
   /// have been released. If not, the default, then the [allocate]
   /// and [using] methods must not be called after a call to `releaseAll`.
   ///
@@ -85,7 +85,7 @@ class Pool implements Allocator {
       _inUse = false;
     }
     // The code below is deliberately wirtten to allow allocations to happen
-    // during `releaseAll(reuse:true)`. The pool will still be guaranteed
+    // during `releaseAll(reuse:true)`. The arena will still be guaranteed
     // empty when the `releaseAll` call returns.
     while (_managedResourceReleaseCallbacks.isNotEmpty) {
       _managedResourceReleaseCallbacks.removeLast()();
@@ -103,12 +103,12 @@ class Pool implements Allocator {
   void _ensureInUse() {
     if (!_inUse) {
       throw StateError(
-          'Pool no longer in use, `releaseAll(reuse: false)` was called.');
+          'Arena no longer in use, `releaseAll(reuse: false)` was called.');
     }
   }
 }
 
-/// Runs [computation] with a new [Pool], and releases all allocations at the
+/// Runs [computation] with a new [Arena], and releases all allocations at the
 /// end.
 ///
 /// If the return value of [computation] is a [Future], all allocations are
@@ -116,67 +116,68 @@ class Pool implements Allocator {
 ///
 /// If the isolate is shut down, through `Isolate.kill()`, resources are _not_
 /// cleaned up.
-R using<R>(R Function(Pool) computation,
+R using<R>(R Function(Arena) computation,
     [Allocator wrappedAllocator = calloc]) {
-  final pool = Pool(wrappedAllocator);
+  final arena = Arena(wrappedAllocator);
   bool isAsync = false;
   try {
-    final result = computation(pool);
+    final result = computation(arena);
     if (result is Future) {
       isAsync = true;
-      return (result.whenComplete(pool.releaseAll) as R);
+      return (result.whenComplete(arena.releaseAll) as R);
     }
     return result;
   } finally {
     if (!isAsync) {
-      pool.releaseAll();
+      arena.releaseAll();
     }
   }
 }
 
-/// Creates a zoned [Pool] to manage native resources.
+/// Creates a zoned [Arena] to manage native resources.
 ///
-/// The pool is availabe through [zonePool].
+/// The arena is availabe through [zoneArena].
 ///
-/// If the isolate is shut down, through `Isolate.kill()`, resources are _not_ cleaned up.
-R withZonePool<R>(R Function() computation,
+/// If the isolate is shut down, through `Isolate.kill()`, resources are _not_
+/// cleaned up.
+R withZoneArena<R>(R Function() computation,
     [Allocator wrappedAllocator = calloc]) {
-  final pool = Pool(wrappedAllocator);
-  var poolHolder = [pool];
+  final arena = Arena(wrappedAllocator);
+  var arenaHolder = [arena];
   bool isAsync = false;
   try {
     return runZoned(() {
       final result = computation();
       if (result is Future) {
         isAsync = true;
-        result.whenComplete(pool.releaseAll);
+        result.whenComplete(arena.releaseAll);
       }
       return result;
-    }, zoneValues: {#_pool: poolHolder});
+    }, zoneValues: {#_arena: arenaHolder});
   } finally {
     if (!isAsync) {
-      pool.releaseAll();
-      poolHolder.clear();
+      arena.releaseAll();
+      arenaHolder.clear();
     }
   }
 }
 
-/// A zone-specific [Pool].
+/// A zone-specific [Arena].
 ///
-/// Asynchronous computations can share a [Pool]. Use [withZonePool] to create
-/// a new zone with a fresh [Pool], and that pool will then be released
-/// automatically when the function passed to [withZonePool] completes.
-/// All code inside that zone can use `zonePool` to access the pool.
+/// Asynchronous computations can share a [Arena]. Use [withZoneArena] to create
+/// a new zone with a fresh [Arena], and that arena will then be released
+/// automatically when the function passed to [withZoneArena] completes.
+/// All code inside that zone can use `zoneArena` to access the arena.
 ///
-/// The current pool must not be accessed by code which is not running inside
-/// a zone created by [withZonePool].
-Pool get zonePool {
-  final List<Pool>? poolHolder = Zone.current[#_pool];
-  if (poolHolder == null) {
-    throw StateError('Not inside a zone created by `usePool`');
+/// The current arena must not be accessed by code which is not running inside
+/// a zone created by [withZoneArena].
+Arena get zoneArena {
+  final List<Arena>? arenaHolder = Zone.current[#_arena];
+  if (arenaHolder == null) {
+    throw StateError('Not inside a zone created by `useArena`');
   }
-  if (poolHolder.isNotEmpty) {
-    return poolHolder.single;
+  if (arenaHolder.isNotEmpty) {
+    return arenaHolder.single;
   }
-  throw StateError('Pool has already been cleared with releaseAll.');
+  throw StateError('Arena has already been cleared with releaseAll.');
 }

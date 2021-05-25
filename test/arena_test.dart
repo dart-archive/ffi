@@ -15,8 +15,8 @@ void main() async {
       freed.add(i);
     }
 
-    using((Pool pool) {
-      pool.using(1234, freeInt);
+    using((Arena arena) {
+      arena.using(1234, freeInt);
       expect(freed.isEmpty, true);
     });
     expect(freed.length, 1);
@@ -31,9 +31,9 @@ void main() async {
       freed.add(i);
     }
 
-    Future<int> myFutureInt = using((Pool pool) {
+    Future<int> myFutureInt = using((Arena arena) {
       return Future.microtask(() {
-        pool.using(1234, freeInt);
+        arena.using(1234, freeInt);
         return 1;
       });
     });
@@ -55,8 +55,8 @@ void main() async {
     // Resources are freed also when abnormal control flow occurs.
     bool didThrow = false;
     try {
-      using((Pool pool) {
-        pool.using(1234, freeInt);
+      using((Arena arena) {
+        arena.using(1234, freeInt);
         expect(freed.isEmpty, true);
         throw Exception('Some random exception');
       });
@@ -73,8 +73,8 @@ void main() async {
     () {
       final countingAllocator = CountingAllocator();
       // To ensure resources are freed, wrap them in a [using] call.
-      using((Pool pool) {
-        final p = pool<Int64>(2);
+      using((Arena arena) {
+        final p = arena<Int64>(2);
         p[1] = p[0];
       }, countingAllocator);
       expect(countingAllocator.numFrees, 1);
@@ -86,8 +86,8 @@ void main() async {
     bool didThrow = false;
     final countingAllocator = CountingAllocator();
     try {
-      using((Pool pool) {
-        final p = pool<Int64>(2);
+      using((Arena arena) {
+        final p = arena<Int64>(2);
         p[0] = 25;
         throw Exception('Some random exception');
       }, countingAllocator);
@@ -100,8 +100,8 @@ void main() async {
 
   test('toNativeUtf8', () {
     final countingAllocator = CountingAllocator();
-    using((Pool pool) {
-      final p = 'Hello world!'.toNativeUtf8(allocator: pool);
+    using((Arena arena) {
+      final p = 'Hello world!'.toNativeUtf8(allocator: arena);
       expect(p.toDartString(), 'Hello world!');
     }, countingAllocator);
     expect(countingAllocator.numFrees, 1);
@@ -113,8 +113,8 @@ void main() async {
       freed.add(i);
     }
 
-    withZonePool(() {
-      zonePool.using(1234, freeInt);
+    withZoneArena(() {
+      zoneArena.using(1234, freeInt);
       expect(freed.isEmpty, true);
     });
     expect(freed.length, 1);
@@ -129,9 +129,9 @@ void main() async {
       freed.add(i);
     }
 
-    Future<int> myFutureInt = withZonePool(() {
+    Future<int> myFutureInt = withZoneArena(() {
       return Future.microtask(() {
-        zonePool.using(1234, freeInt);
+        zoneArena.using(1234, freeInt);
         return 1;
       });
     });
@@ -153,8 +153,8 @@ void main() async {
     // Resources are freed also when abnormal control flow occurs.
     bool didThrow = false;
     try {
-      withZonePool(() {
-        zonePool.using(1234, freeInt);
+      withZoneArena(() {
+        zoneArena.using(1234, freeInt);
         expect(freed.isEmpty, true);
         throw Exception('Some random exception');
       });
@@ -168,16 +168,16 @@ void main() async {
 
   test('allocate during releaseAll', () {
     final countingAllocator = CountingAllocator();
-    final pool = Pool(countingAllocator);
+    final arena = Arena(countingAllocator);
 
-    pool.using(pool<Uint8>(), (Pointer discard) {
-      pool<Uint8>();
+    arena.using(arena<Uint8>(), (Pointer discard) {
+      arena<Uint8>();
     });
 
     expect(countingAllocator.numAllocations, 1);
     expect(countingAllocator.numFrees, 0);
 
-    pool.releaseAll(reuse: true);
+    arena.releaseAll(reuse: true);
 
     expect(countingAllocator.numAllocations, 2);
     expect(countingAllocator.numFrees, 2);
