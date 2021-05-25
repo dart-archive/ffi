@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.0
+
+Moved from static analysis with lints in package:pedantic to package:lints.
+
 ## 1.0.0
 
 Bumping the version of this package to `1.0.0`.
