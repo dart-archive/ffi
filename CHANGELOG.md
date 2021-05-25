@@ -2,7 +2,9 @@
 
 ## 1.1.0
 
-Moved from static analysis with lints in package:pedantic to package:lints.
+Adds the `arena` allocator.
+
+Moves from static analysis with lints in package:pedantic to package:lints.
 
 ## 1.0.0
 
