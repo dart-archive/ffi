@@ -19,13 +19,12 @@ void main() async {
       arena.using(1234, freeInt);
       expect(freed.isEmpty, true);
     });
-    expect(freed.length, 1);
-    expect(freed.single, 1234);
+    expect(freed, [1234]);
   });
 
   test('async', () async {
-    /// [using] waits with releasing its resources until after [Future]s
-    /// complete.
+    /// Calling [using] waits with releasing its resources until after
+    /// [Future]s complete.
     List<int> freed = [];
     void freeInt(int i) {
       freed.add(i);
@@ -40,8 +39,7 @@ void main() async {
 
     expect(freed.isEmpty, true);
     await myFutureInt;
-    expect(freed.length, 1);
-    expect(freed.single, 1234);
+    expect(freed, [1234]);
   });
 
   test('throw', () {
@@ -53,19 +51,18 @@ void main() async {
     }
 
     // Resources are freed also when abnormal control flow occurs.
-    bool didThrow = false;
+    var didThrow = false;
     try {
       using((Arena arena) {
         arena.using(1234, freeInt);
         expect(freed.isEmpty, true);
-        throw Exception('Some random exception');
+        throw Exception('Exception 1');
       });
     } on Exception {
       expect(freed.single, 1234);
       didThrow = true;
     }
     expect(didThrow, true);
-    expect(freed.single, 1234);
   });
 
   test(
@@ -77,7 +74,7 @@ void main() async {
         final p = arena<Int64>(2);
         p[1] = p[0];
       }, countingAllocator);
-      expect(countingAllocator.numFrees, 1);
+      expect(countingAllocator.freeCount, 1);
     },
   );
 
@@ -89,10 +86,10 @@ void main() async {
       using((Arena arena) {
         final p = arena<Int64>(2);
         p[0] = 25;
-        throw Exception('Some random exception');
+        throw Exception('Exception 2');
       }, countingAllocator);
     } on Exception {
-      expect(countingAllocator.numFrees, 1);
+      expect(countingAllocator.freeCount, 1);
       didThrow = true;
     }
     expect(didThrow, true);
@@ -104,7 +101,7 @@ void main() async {
       final p = 'Hello world!'.toNativeUtf8(allocator: arena);
       expect(p.toDartString(), 'Hello world!');
     }, countingAllocator);
-    expect(countingAllocator.numFrees, 1);
+    expect(countingAllocator.freeCount, 1);
   });
 
   test('zone', () async {
@@ -156,7 +153,7 @@ void main() async {
       withZoneArena(() {
         zoneArena.using(1234, freeInt);
         expect(freed.isEmpty, true);
-        throw Exception('Some random exception');
+        throw Exception('Exception 3');
       });
     } on Exception {
       expect(freed.single, 1234);
@@ -174,13 +171,13 @@ void main() async {
       arena<Uint8>();
     });
 
-    expect(countingAllocator.numAllocations, 1);
-    expect(countingAllocator.numFrees, 0);
+    expect(countingAllocator.allocationCount, 1);
+    expect(countingAllocator.freeCount, 0);
 
     arena.releaseAll(reuse: true);
 
-    expect(countingAllocator.numAllocations, 2);
-    expect(countingAllocator.numFrees, 2);
+    expect(countingAllocator.allocationCount, 2);
+    expect(countingAllocator.freeCount, 2);
   });
 }
 
@@ -188,20 +185,20 @@ void main() async {
 class CountingAllocator implements Allocator {
   final Allocator wrappedAllocator;
 
-  int numAllocations = 0;
-  int numFrees = 0;
+  int allocationCount = 0;
+  int freeCount = 0;
 
   CountingAllocator([this.wrappedAllocator = calloc]);
 
   @override
   Pointer<T> allocate<T extends NativeType>(int byteCount, {int? alignment}) {
-    numAllocations++;
+    allocationCount++;
     return wrappedAllocator.allocate(byteCount, alignment: alignment);
   }
 
   @override
   void free(Pointer<NativeType> pointer) {
-    numFrees++;
+    freeCount++;
     return wrappedAllocator.free(pointer);
   }
 }
