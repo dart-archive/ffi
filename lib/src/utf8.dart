@@ -22,13 +22,9 @@ extension Utf8Pointer on Pointer<Utf8> {
   /// The UTF-8 code units of the strings are the non-zero code units up to the
   /// first zero code unit.
   int get length {
-    _ensureNotNullptr();
-    final Pointer<Uint8> array = cast<Uint8>();
-    int length = 0;
-    while (array[length] != 0) {
-      length++;
-    }
-    return length;
+    _ensureNotNullptr('length');
+    final codeUnits = cast<Uint8>();
+    return _length(codeUnits);
   }
 
   /// Converts this UTF-8 encoded string to a Dart string.
@@ -39,20 +35,32 @@ extension Utf8Pointer on Pointer<Utf8> {
   ///
   /// If [length] is provided, zero-termination is ignored and the result can
   /// contain NUL characters.
+  ///
+  /// If [length] is not provided, the returned string is the string up til
+  /// but not including  the first NUL character.
   String toDartString({int? length}) {
-    _ensureNotNullptr();
+    _ensureNotNullptr('toDartString');
+    final codeUnits = cast<Uint8>();
     if (length != null) {
       RangeError.checkNotNegative(length, 'length');
     } else {
-      length = this.length;
+      length = _length(codeUnits);
     }
-    return utf8.decode(cast<Uint8>().asTypedList(length));
+    return utf8.decode(codeUnits.asTypedList(length));
   }
 
-  void _ensureNotNullptr() {
+  static int _length(Pointer<Uint8> codeUnits) {
+    var length = 0;
+    while (codeUnits[length] != 0) {
+      length++;
+    }
+    return length;
+  }
+
+  void _ensureNotNullptr(String operation) {
     if (this == nullptr) {
-      throw ArgumentError(
-          "Calling this operation on 'nullptr' will most likely segfault.");
+      throw UnsupportedError(
+          "Operation '$operation' not allowed on a 'nullptr'.");
     }
   }
 }
