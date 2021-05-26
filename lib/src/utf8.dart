@@ -22,6 +22,7 @@ extension Utf8Pointer on Pointer<Utf8> {
   /// The UTF-8 code units of the strings are the non-zero code units up to the
   /// first zero code unit.
   int get length {
+    _ensureNotNullptr();
     final Pointer<Uint8> array = cast<Uint8>();
     int length = 0;
     while (array[length] != 0) {
@@ -39,12 +40,20 @@ extension Utf8Pointer on Pointer<Utf8> {
   /// If [length] is provided, zero-termination is ignored and the result can
   /// contain NUL characters.
   String toDartString({int? length}) {
+    _ensureNotNullptr();
     if (length != null) {
       RangeError.checkNotNegative(length, 'length');
     } else {
       length = this.length;
     }
     return utf8.decode(cast<Uint8>().asTypedList(length));
+  }
+
+  void _ensureNotNullptr() {
+    if (this == nullptr) {
+      throw ArgumentError(
+          "Calling this operation on 'nullptr' will most likely segfault.");
+    }
   }
 }
 

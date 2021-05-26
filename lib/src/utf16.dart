@@ -22,6 +22,7 @@ extension Utf16Pointer on Pointer<Utf16> {
   /// The UTF-16 code units of the strings are the non-zero code units up to
   /// the first zero code unit.
   int get length {
+    _ensureNotNullptr();
     final Pointer<Uint16> array = cast<Uint16>();
     int length = 0;
     while (array[length] != 0) {
@@ -39,6 +40,7 @@ extension Utf16Pointer on Pointer<Utf16> {
   /// If [length] is provided, zero-termination is ignored and the result can
   /// contain NUL characters.
   String toDartString({int? length}) {
+    _ensureNotNullptr();
     if (length == null) {
       return _toUnknownLengthString(cast<Uint16>());
     } else {
@@ -60,6 +62,13 @@ extension Utf16Pointer on Pointer<Utf16> {
       }
       buffer.writeCharCode(char);
       i++;
+    }
+  }
+
+  void _ensureNotNullptr() {
+    if (this == nullptr) {
+      throw ArgumentError(
+          "Calling this operation on 'nullptr' will most likely segfault.");
     }
   }
 }

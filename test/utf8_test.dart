@@ -96,4 +96,14 @@ void main() {
     expect(utf8Pointer.length, 5);
     calloc.free(utf8Pointer);
   });
+
+  test('nullptr', () {
+    final Pointer<Utf8> utf8 = nullptr;
+    try {
+      utf8.toDartString();
+    } on ArgumentError {
+      return;
+    }
+    fail('Expected an error.');
+  });
 }
