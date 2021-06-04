@@ -166,19 +166,22 @@ void main() async {
   test('zone future error', () async {
     bool caughtError = false;
     bool uncaughtError = false;
+
+    Future<int> asyncFunction() async {
+      throw Exception('Exception 4');
+    }
+
     final future = runZonedGuarded(() {
-      return withZoneArena(() async {
-        throw Exception('Exception 4');
-        // ignore: dead_code
-        return 1;
-      }).catchError((error) {
+      return withZoneArena(asyncFunction).catchError((error) {
         caughtError = true;
         return 5;
       });
     }, (error, stackTrace) {
       uncaughtError = true;
     });
+
     final result = (await Future.wait([future!])).single;
+
     expect(result, 5);
     expect(caughtError, true);
     expect(uncaughtError, false);
