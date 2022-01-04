@@ -4,11 +4,29 @@
 
 import 'dart:ffi';
 
+// `char` in C.
+typedef Char = Int8;
+
+// `unsigned char` in C.
+typedef UnsignedChar = Uint8;
+
+// `short` in C.
+typedef Short = Int16;
+
+// `unsigned short` in C.
+typedef UnsignedShort = Uint16;
+
 // `int` in C.
 typedef Int = Int32;
 
 // `unsigned int` in C.
 typedef UnsignedInt = Uint32;
+
+// `long long` in C.
+typedef LongLong = Int64;
+
+// `unsigned long long` in C.
+typedef UnsignedLongLong = Uint64;
 
 // `size_t` in C.
 typedef Size = UintPtr;
