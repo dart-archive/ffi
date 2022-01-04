@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.0-dev.0
+
+Added common C integer types as ABI-specific integers or typedefs.
+
+This pre-release requires Dart `2.16.0-118.0.dev` or greater. 
+
 ## 1.1.2
 
 Fixed unhandled exception in `withZoneArena` (#107).
