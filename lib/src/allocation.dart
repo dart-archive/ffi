@@ -35,9 +35,9 @@ typedef WinHeapAlloc = Pointer Function(Pointer, int, int);
 final WinHeapAlloc winHeapAlloc =
     stdlib.lookupFunction<WinHeapAllocNative, WinHeapAlloc>('HeapAlloc');
 
-typedef WinHeapFreeNative = Int32 Function(
+typedef WinHeapFreeNative = Bool Function(
     Pointer heap, Uint32 flags, Pointer memory);
-typedef WinHeapFree = int Function(Pointer heap, int flags, Pointer memory);
+typedef WinHeapFree = bool Function(Pointer heap, int flags, Pointer memory);
 final WinHeapFree winHeapFree =
     stdlib.lookupFunction<WinHeapFreeNative, WinHeapFree>('HeapFree');
 
@@ -85,12 +85,10 @@ class _MallocAllocator implements Allocator {
   /// Throws an [ArgumentError] if the memory pointed to by [pointer] cannot be
   /// freed.
   ///
-  // TODO(dartbug.com/36855): Once we have a ffi.Bool type we can use it instead
-  // of testing the return integer to be non-zero.
   @override
   void free(Pointer pointer) {
     if (Platform.isWindows) {
-      if (winHeapFree(processHeap, /*flags=*/ 0, pointer) == 0) {
+      if (winHeapFree(processHeap, /*flags=*/ 0, pointer)) {
         throw ArgumentError('Could not free $pointer.');
       }
     } else {
@@ -151,12 +149,10 @@ class _CallocAllocator implements Allocator {
   /// Throws an [ArgumentError] if the memory pointed to by [pointer] cannot be
   /// freed.
   ///
-  // TODO(dartbug.com/36855): Once we have a ffi.Bool type we can use it instead
-  // of testing the return integer to be non-zero.
   @override
   void free(Pointer pointer) {
     if (Platform.isWindows) {
-      if (winHeapFree(processHeap, /*flags=*/ 0, pointer) == 0) {
+      if (winHeapFree(processHeap, /*flags=*/ 0, pointer)) {
         throw ArgumentError('Could not free $pointer.');
       }
     } else {
