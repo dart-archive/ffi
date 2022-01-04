@@ -88,7 +88,7 @@ class _MallocAllocator implements Allocator {
   @override
   void free(Pointer pointer) {
     if (Platform.isWindows) {
-      if (winHeapFree(processHeap, /*flags=*/ 0, pointer)) {
+      if (!winHeapFree(processHeap, /*flags=*/ 0, pointer)) {
         throw ArgumentError('Could not free $pointer.');
       }
     } else {
@@ -152,7 +152,7 @@ class _CallocAllocator implements Allocator {
   @override
   void free(Pointer pointer) {
     if (Platform.isWindows) {
-      if (winHeapFree(processHeap, /*flags=*/ 0, pointer)) {
+      if (!winHeapFree(processHeap, /*flags=*/ 0, pointer)) {
         throw ArgumentError('Could not free $pointer.');
       }
     } else {
