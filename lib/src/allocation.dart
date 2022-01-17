@@ -35,9 +35,9 @@ typedef WinHeapAlloc = Pointer Function(Pointer, int, int);
 final WinHeapAlloc winHeapAlloc =
     stdlib.lookupFunction<WinHeapAllocNative, WinHeapAlloc>('HeapAlloc');
 
-typedef WinHeapFreeNative = Bool Function(
+typedef WinHeapFreeNative = Int32 Function(
     Pointer heap, Uint32 flags, Pointer memory);
-typedef WinHeapFree = bool Function(Pointer heap, int flags, Pointer memory);
+typedef WinHeapFree = int Function(Pointer heap, int flags, Pointer memory);
 final WinHeapFree winHeapFree =
     stdlib.lookupFunction<WinHeapFreeNative, WinHeapFree>('HeapFree');
 
@@ -88,7 +88,7 @@ class _MallocAllocator implements Allocator {
   @override
   void free(Pointer pointer) {
     if (Platform.isWindows) {
-      if (!winHeapFree(processHeap, /*flags=*/ 0, pointer)) {
+      if (winHeapFree(processHeap, /*flags=*/ 0, pointer) == 0) {
         throw ArgumentError('Could not free $pointer.');
       }
     } else {
@@ -152,7 +152,7 @@ class _CallocAllocator implements Allocator {
   @override
   void free(Pointer pointer) {
     if (Platform.isWindows) {
-      if (!winHeapFree(processHeap, /*flags=*/ 0, pointer)) {
+      if (winHeapFree(processHeap, /*flags=*/ 0, pointer) == 0) {
         throw ArgumentError('Could not free $pointer.');
       }
     } else {
