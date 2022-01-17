@@ -4,8 +4,8 @@
 
 import 'dart:ffi';
 
-// `char` in C.
-typedef Char = Int8;
+// `signed char` in C.
+typedef SignedChar = Int8;
 
 // `unsigned char` in C.
 typedef UnsignedChar = Uint8;
@@ -37,7 +37,35 @@ typedef SSize = IntPtr;
 // `off_t` in C.
 typedef Off = Long;
 
-/// Represents a native unsigned pointer-sized integer in C.
+/// `char` in C.
+///
+/// [Char] is not constructible in the Dart code and serves purely as marker
+/// in type signatures.
+@AbiSpecificIntegerMapping({
+  Abi.androidArm: Uint8(),
+  Abi.androidArm64: Uint8(),
+  Abi.androidIA32: Uint8(),
+  Abi.androidX64: Uint8(),
+  Abi.fuchsiaArm64: Int8(),
+  Abi.fuchsiaX64: Int8(),
+  Abi.iosArm: Int8(),
+  Abi.iosArm64: Int8(),
+  Abi.iosX64: Int8(),
+  Abi.linuxArm: Int8(),
+  Abi.linuxArm64: Int8(),
+  Abi.linuxIA32: Int8(),
+  Abi.linuxX64: Int8(),
+  Abi.macosArm64: Int8(),
+  Abi.macosX64: Int8(),
+  Abi.windowsArm64: Int8(),
+  Abi.windowsIA32: Int8(),
+  Abi.windowsX64: Int8(),
+})
+class Char extends AbiSpecificInteger {
+  const Char();
+}
+
+/// `uintptr_t` in C.
 ///
 /// [UintPtr] is not constructible in the Dart code and serves purely as marker in
 /// type signatures.
@@ -134,16 +162,16 @@ class UnsignedLong extends AbiSpecificInteger {
   Abi.androidIA32: Uint32(),
   Abi.androidX64: Uint32(),
   Abi.fuchsiaArm64: Uint32(),
-  Abi.fuchsiaX64: Uint32(),
-  Abi.iosArm: Uint32(),
-  Abi.iosArm64: Uint32(),
-  Abi.iosX64: Uint32(),
+  Abi.fuchsiaX64: Int32(),
+  Abi.iosArm: Int32(),
+  Abi.iosArm64: Int32(),
+  Abi.iosX64: Int32(),
   Abi.linuxArm: Uint32(),
   Abi.linuxArm64: Uint32(),
-  Abi.linuxIA32: Uint32(),
-  Abi.linuxX64: Uint32(),
-  Abi.macosArm64: Uint32(),
-  Abi.macosX64: Uint32(),
+  Abi.linuxIA32: Int32(),
+  Abi.linuxX64: Int32(),
+  Abi.macosArm64: Int32(),
+  Abi.macosX64: Int32(),
   Abi.windowsArm64: Uint16(),
   Abi.windowsIA32: Uint16(),
   Abi.windowsX64: Uint16(),
