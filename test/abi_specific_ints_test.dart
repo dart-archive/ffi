@@ -14,11 +14,11 @@ void main() {
   });
 
   test('wchar_t', () {
-    expect(sizeOf<WChar>, Platform.isWindows ? 2 : 4);
+    expect(sizeOf<WChar>(), Platform.isWindows ? 2 : 4);
   });
 
   test('long', () {
-    expect(sizeOf<WChar>, Platform.isWindows ? 4 : sizeOf<IntPtr>());
+    expect(sizeOf<Long>(), Platform.isWindows ? 4 : sizeOf<IntPtr>());
   });
 
   test('unsigned long', () {
