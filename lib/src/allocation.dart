@@ -73,10 +73,6 @@ class _MallocAllocator implements Allocator {
   /// For POSIX-based systems, this uses `free`. On Windows, it uses
   /// `CoTaskMemFree`. It may only be used against pointers allocated in a
   /// manner equivalent to [allocate].
-  ///
-  /// Throws an [ArgumentError] if the memory pointed to by [pointer] cannot be
-  /// freed.
-  ///
   @override
   void free(Pointer pointer) {
     if (Platform.isWindows) {
@@ -147,10 +143,6 @@ class _CallocAllocator implements Allocator {
   /// For POSIX-based systems, this uses `free`. On Windows, it uses
   /// `CoTaskMemFree`. It may only be used against pointers allocated in a
   /// manner equivalent to [allocate].
-  ///
-  /// Throws an [ArgumentError] if the memory pointed to by [pointer] cannot be
-  /// freed.
-  ///
   @override
   void free(Pointer pointer) {
     if (Platform.isWindows) {
