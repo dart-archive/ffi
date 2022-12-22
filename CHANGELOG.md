@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.2
+
+This release requires Dart `2.12.0` or greater.
+
 ## 2.0.1
 
 Only zero out memory on successful allocation on Windows.
