@@ -11,8 +11,8 @@
 ## 2.0.0
 
 - Switch Windows memory allocation to use `CoTaskMemAlloc` and `CoTaskMemFree`,
-- which will enable support for `NativeFinalizer`. This release requires Dart
-- 2.17.0 or greater.
+  which will enable support for `NativeFinalizer`.
+- Require Dart 2.17.0 or greater.
 
 ## 1.2.1
 
