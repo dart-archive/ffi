@@ -38,7 +38,7 @@ final Pointer<NativeFunction<WinCoTaskMemFreeNative>> winCoTaskMemFreePtr =
     stdlib.lookup('CoTaskMemFree');
 final WinCoTaskMemFree winCoTaskMemFree = winCoTaskMemFreePtr.asFunction();
 
-abstract class AllocatorExposingNativeFinalizer implements Allocator {
+abstract interface class NativeFreeableAllocator implements Allocator {
   Pointer<NativeFinalizerFunction> get nativeFree;
 }
 
@@ -49,7 +49,7 @@ abstract class AllocatorExposingNativeFinalizer implements Allocator {
 ///
 /// For POSIX-based systems, this uses `malloc` and `free`. On Windows, it uses
 /// `CoTaskMemAlloc`.
-class _MallocAllocator implements AllocatorExposingNativeFinalizer {
+class _MallocAllocator implements NativeFreeableAllocator {
   const _MallocAllocator();
 
   /// Allocates [byteCount] bytes of of unitialized memory on the native heap.
@@ -100,7 +100,7 @@ class _MallocAllocator implements AllocatorExposingNativeFinalizer {
 ///
 /// For POSIX-based systems, this uses `malloc` and `free`. On Windows, it uses
 /// `CoTaskMemAlloc` and `CoTaskMemFree`.
-const AllocatorExposingNativeFinalizer malloc = _MallocAllocator();
+const NativeFreeableAllocator malloc = _MallocAllocator();
 
 /// Manages memory on the native heap.
 ///
@@ -108,7 +108,7 @@ const AllocatorExposingNativeFinalizer malloc = _MallocAllocator();
 ///
 /// For POSIX-based systems, this uses `calloc` and `free`. On Windows, it uses
 /// `CoTaskMemAlloc` and `CoTaskMemFree`.
-class _CallocAllocator implements AllocatorExposingNativeFinalizer {
+class _CallocAllocator implements NativeFreeableAllocator {
   const _CallocAllocator();
 
   /// Fills a block of memory with a specified value.
@@ -176,4 +176,4 @@ class _CallocAllocator implements AllocatorExposingNativeFinalizer {
 ///
 /// For POSIX-based systems, this uses `calloc` and `free`. On Windows, it uses
 /// `CoTaskMemAlloc` and `CoTaskMemFree`.
-const AllocatorExposingNativeFinalizer calloc = _CallocAllocator();
+const NativeFreeableAllocator calloc = _CallocAllocator();
