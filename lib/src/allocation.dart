@@ -22,9 +22,9 @@ final PosixCalloc posixCalloc =
 
 typedef PosixFreeNative = Void Function(Pointer);
 typedef PosixFree = void Function(Pointer);
-final Pointer<NativeFunction<PosixFreeNative>> posixFreePtr =
+final Pointer<NativeFunction<PosixFreeNative>> posixFreePointer =
     stdlib.lookup('free');
-final PosixFree posixFree = posixFreePtr.asFunction();
+final PosixFree posixFree = posixFreePointer.asFunction();
 
 typedef WinCoTaskMemAllocNative = Pointer Function(Size);
 typedef WinCoTaskMemAlloc = Pointer Function(int);
@@ -34,13 +34,9 @@ final WinCoTaskMemAlloc winCoTaskMemAlloc =
 
 typedef WinCoTaskMemFreeNative = Void Function(Pointer);
 typedef WinCoTaskMemFree = void Function(Pointer);
-final Pointer<NativeFunction<WinCoTaskMemFreeNative>> winCoTaskMemFreePtr =
+final Pointer<NativeFunction<WinCoTaskMemFreeNative>> winCoTaskMemFreePointer =
     stdlib.lookup('CoTaskMemFree');
-final WinCoTaskMemFree winCoTaskMemFree = winCoTaskMemFreePtr.asFunction();
-
-abstract interface class NativeFreeableAllocator implements Allocator {
-  Pointer<NativeFinalizerFunction> get nativeFree;
-}
+final WinCoTaskMemFree winCoTaskMemFree = winCoTaskMemFreePointer.asFunction();
 
 /// Manages memory on the native heap.
 ///
@@ -49,8 +45,8 @@ abstract interface class NativeFreeableAllocator implements Allocator {
 ///
 /// For POSIX-based systems, this uses `malloc` and `free`. On Windows, it uses
 /// `CoTaskMemAlloc`.
-class _MallocAllocator implements NativeFreeableAllocator {
-  const _MallocAllocator();
+final class MallocAllocator implements Allocator {
+  const MallocAllocator._();
 
   /// Allocates [byteCount] bytes of of unitialized memory on the native heap.
   ///
@@ -88,9 +84,14 @@ class _MallocAllocator implements NativeFreeableAllocator {
     }
   }
 
-  @override
+  /// Returns a pointer to a native free function.
+  ///
+  /// This function can be used to release memory allocated by [allocated]
+  /// from the native side. It can also be used as a finalization callback
+  /// passed to `NativeFinalizer` constructor or `Pointer.atTypedList`
+  /// method.
   Pointer<NativeFinalizerFunction> get nativeFree =>
-      Platform.isWindows ? winCoTaskMemFreePtr : posixFreePtr;
+      Platform.isWindows ? winCoTaskMemFreePointer : posixFreePointer;
 }
 
 /// Manages memory on the native heap.
@@ -100,7 +101,7 @@ class _MallocAllocator implements NativeFreeableAllocator {
 ///
 /// For POSIX-based systems, this uses `malloc` and `free`. On Windows, it uses
 /// `CoTaskMemAlloc` and `CoTaskMemFree`.
-const NativeFreeableAllocator malloc = _MallocAllocator();
+const MallocAllocator malloc = MallocAllocator._();
 
 /// Manages memory on the native heap.
 ///
@@ -108,8 +109,8 @@ const NativeFreeableAllocator malloc = _MallocAllocator();
 ///
 /// For POSIX-based systems, this uses `calloc` and `free`. On Windows, it uses
 /// `CoTaskMemAlloc` and `CoTaskMemFree`.
-class _CallocAllocator implements NativeFreeableAllocator {
-  const _CallocAllocator();
+final class CallocAllocator implements Allocator {
+  const CallocAllocator._();
 
   /// Fills a block of memory with a specified value.
   void _fillMemory(Pointer destination, int length, int fill) {
@@ -164,9 +165,14 @@ class _CallocAllocator implements NativeFreeableAllocator {
     }
   }
 
-  @override
+  /// Returns a pointer to a native free function.
+  ///
+  /// This function can be used to release memory allocated by [allocated]
+  /// from the native side. It can also be used as a finalization callback
+  /// passed to `NativeFinalizer` constructor or `Pointer.atTypedList`
+  /// method.
   Pointer<NativeFinalizerFunction> get nativeFree =>
-      Platform.isWindows ? winCoTaskMemFreePtr : posixFreePtr;
+      Platform.isWindows ? winCoTaskMemFreePointer : posixFreePointer;
 }
 
 /// Manages memory on the native heap.
@@ -176,4 +182,4 @@ class _CallocAllocator implements NativeFreeableAllocator {
 ///
 /// For POSIX-based systems, this uses `calloc` and `free`. On Windows, it uses
 /// `CoTaskMemAlloc` and `CoTaskMemFree`.
-const NativeFreeableAllocator calloc = _CallocAllocator();
+const CallocAllocator calloc = CallocAllocator._();
