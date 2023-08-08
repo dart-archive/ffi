@@ -90,6 +90,28 @@ final class MallocAllocator implements Allocator {
   /// from the native side. It can also be used as a finalization callback
   /// passed to `NativeFinalizer` constructor or `Pointer.atTypedList`
   /// method.
+  ///
+  /// For example to automatically free native memory when the Dart object
+  /// wrapping it is reclaimed by GC:
+  ///
+  /// ```dart
+  /// class Wrapper implements Finalizable {
+  ///   static final finalizer = NativeFinalizer(malloc.nativeFree);
+  ///
+  ///   final Pointer<Uint8> data;
+  ///
+  ///   Wrapper() : data = malloc.allocate<Uint8>(length) {
+  ///     finalizer.attach(this, data);
+  ///   }
+  /// }
+  /// ```
+  ///
+  /// or to free native memory that is owned by a typed list:
+  ///
+  /// ```dart
+  /// malloc.allocate<Uint8>(n).asTypedList(n, finalizer: malloc.nativeFree)
+  /// ```
+  ///
   Pointer<NativeFinalizerFunction> get nativeFree =>
       Platform.isWindows ? winCoTaskMemFreePointer : posixFreePointer;
 }
@@ -171,6 +193,28 @@ final class CallocAllocator implements Allocator {
   /// from the native side. It can also be used as a finalization callback
   /// passed to `NativeFinalizer` constructor or `Pointer.atTypedList`
   /// method.
+  ///
+  /// For example to automatically free native memory when the Dart object
+  /// wrapping it is reclaimed by GC:
+  ///
+  /// ```dart
+  /// class Wrapper implements Finalizable {
+  ///   static final finalizer = NativeFinalizer(calloc.nativeFree);
+  ///
+  ///   final Pointer<Uint8> data;
+  ///
+  ///   Wrapper() : data = calloc.allocate<Uint8>(length) {
+  ///     finalizer.attach(this, data);
+  ///   }
+  /// }
+  /// ```
+  ///
+  /// or to free native memory that is owned by a typed list:
+  ///
+  /// ```dart
+  /// calloc.allocate<Uint8>(n).asTypedList(n, finalizer: calloc.nativeFree)
+  /// ```
+  ///
   Pointer<NativeFinalizerFunction> get nativeFree =>
       Platform.isWindows ? winCoTaskMemFreePointer : posixFreePointer;
 }
