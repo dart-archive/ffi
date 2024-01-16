@@ -1,3 +1,9 @@
+# This package has moved!
+
+The package can now be found at https://github.com/dart-lang/native/tree/main/pkgs/ffi
+
+-----
+
 [![Build Status](https://github.com/dart-lang/ffi/workflows/Dart%20CI/badge.svg)](https://github.com/dart-lang/ffi/actions?query=workflow%3A"Dart+CI")
 [![pub package](https://img.shields.io/pub/v/ffi.svg)](https://pub.dev/packages/ffi)
 [![package publisher](https://img.shields.io/pub/publisher/ffi.svg)](https://pub.dev/packages/ffi/publisher)
